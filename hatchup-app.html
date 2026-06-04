@@ -1,0 +1,1569 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0d0d1a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>HatchUp 🥚 — From Egg To Legend.</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   전체 CSS 변수 설정 (색상, 크기 등 한 곳에서 관리)
+   ============================================================ */
+:root {
+  --bg-deep:    #080812;
+  --bg-dark:    #0f0f20;
+  --bg-card:    #16162a;
+  --bg-card2:   #1e1e35;
+  --border:     rgba(255,255,255,0.08);
+  --border-hi:  rgba(255,255,255,0.18);
+  --yellow:     #f5c842;
+  --yellow-dim: #c9a020;
+  --pink:       #ff6eb4;
+  --teal:       #4ecdc4;
+  --red:        #ff4757;
+  --green:      #2ed573;
+  --blue:       #5352ed;
+  --text-1:     rgba(255,255,255,0.92);
+  --text-2:     rgba(255,255,255,0.55);
+  --text-3:     rgba(255,255,255,0.28);
+  --screen-bg:  #9db865;
+  --screen-dark:#2a3a10;
+  --radius-sm:  8px;
+  --radius-md:  14px;
+  --radius-lg:  22px;
+  --radius-xl:  32px;
+}
+
+/* ============================================================
+   리셋 & 기본
+   ============================================================ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { height: 100%; }
+body {
+  min-height: 100%;
+  font-family: 'Noto Sans KR', sans-serif;
+  background: var(--bg-deep);
+  color: var(--text-1);
+  overflow-x: hidden;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* 별 배경 */
+body::before {
+  content: '';
+  position: fixed; inset: 0; z-index: 0;
+  background:
+    radial-gradient(1.5px 1.5px at 12% 18%, rgba(255,255,255,0.7) 0%, transparent 100%),
+    radial-gradient(1px 1px   at 35% 42%, rgba(255,255,255,0.5) 0%, transparent 100%),
+    radial-gradient(2px 2px   at 63% 8%,  rgba(245,200,66,0.4)  0%, transparent 100%),
+    radial-gradient(1px 1px   at 82% 61%, rgba(255,255,255,0.4) 0%, transparent 100%),
+    radial-gradient(1.5px 1.5px at 18% 72%, rgba(255,255,255,0.6) 0%, transparent 100%),
+    radial-gradient(1px 1px   at 51% 85%, rgba(78,205,196,0.5)  0%, transparent 100%),
+    radial-gradient(2px 2px   at 91% 28%, rgba(255,255,255,0.5) 0%, transparent 100%),
+    radial-gradient(1px 1px   at 73% 93%, rgba(255,110,180,0.4) 0%, transparent 100%),
+    radial-gradient(1.5px 1.5px at 44% 55%, rgba(255,255,255,0.3) 0%, transparent 100%);
+  pointer-events: none;
+}
+
+/* ============================================================
+   화면(페이지) 시스템 — JS로 show/hide
+   ============================================================ */
+.page { display: none; min-height: 100vh; position: relative; z-index: 1; }
+.page.active { display: flex; flex-direction: column; }
+
+/* ============================================================
+   공통 컴포넌트
+   ============================================================ */
+
+/* 토스트 알림 */
+#toast {
+  position: fixed; top: 16px; left: 50%;
+  transform: translateX(-50%) translateY(-80px);
+  background: var(--yellow);
+  color: #1a1200;
+  font-weight: 700; font-size: 13px;
+  font-family: 'DotGothic16', monospace;
+  padding: 10px 22px;
+  border-radius: 999px;
+  white-space: nowrap;
+  z-index: 9999;
+  transition: transform 0.35s cubic-bezier(0.34,1.56,0.64,1);
+  box-shadow: 0 4px 24px rgba(245,200,66,0.35);
+}
+#toast.show { transform: translateX(-50%) translateY(0); }
+
+/* 로딩 오버레이 */
+#loading {
+  position: fixed; inset: 0; z-index: 9998;
+  background: var(--bg-deep);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 16px;
+  transition: opacity 0.4s;
+}
+#loading.hide { opacity: 0; pointer-events: none; }
+.loading-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--yellow);
+  display: inline-block; margin: 0 4px;
+  animation: dotBounce 1.2s ease-in-out infinite;
+}
+.loading-dot:nth-child(2) { animation-delay: 0.2s; background: var(--pink); }
+.loading-dot:nth-child(3) { animation-delay: 0.4s; background: var(--teal); }
+@keyframes dotBounce { 0%,80%,100%{transform:translateY(0)} 40%{transform:translateY(-12px)} }
+
+/* 버튼 공통 */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  gap: 8px; padding: 12px 24px;
+  border: none; border-radius: var(--radius-md);
+  font-family: 'Noto Sans KR', sans-serif;
+  font-size: 14px; font-weight: 700;
+  cursor: pointer; transition: all 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+.btn:active { transform: scale(0.97); }
+.btn-primary { background: var(--yellow); color: #1a1200; }
+.btn-primary:hover { background: #ffd55a; }
+.btn-ghost { background: rgba(255,255,255,0.07); color: var(--text-1); border: 1px solid var(--border); }
+.btn-ghost:hover { background: rgba(255,255,255,0.12); }
+.btn-danger { background: rgba(255,71,87,0.15); color: var(--red); border: 1px solid rgba(255,71,87,0.3); }
+.btn-sm { padding: 8px 16px; font-size: 12px; border-radius: var(--radius-sm); }
+.btn-full { width: 100%; }
+
+/* 인풋 */
+.input-group { display: flex; flex-direction: column; gap: 6px; }
+.input-label { font-size: 12px; color: var(--text-2); font-weight: 500; letter-spacing: 0.5px; }
+.input {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  color: var(--text-1);
+  font-family: 'Noto Sans KR', sans-serif;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s;
+  width: 100%;
+}
+.input:focus { border-color: var(--yellow); }
+.input::placeholder { color: var(--text-3); }
+
+/* 카드 */
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+}
+
+/* 내비게이션 바 (하단) */
+#nav-bar {
+  position: fixed; bottom: 0; left: 0; right: 0;
+  background: rgba(15,15,32,0.95);
+  backdrop-filter: blur(20px);
+  border-top: 1px solid var(--border);
+  display: flex; z-index: 100;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+.nav-btn {
+  flex: 1; display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 10px 4px;
+  gap: 4px; border: none; background: transparent;
+  color: var(--text-3); cursor: pointer;
+  font-size: 10px; font-family: 'Noto Sans KR', sans-serif;
+  transition: color 0.2s; -webkit-tap-highlight-color: transparent;
+}
+.nav-btn.active { color: var(--yellow); }
+.nav-icon { font-size: 20px; line-height: 1; }
+
+/* ============================================================
+   🏠 로그인/회원가입 화면
+   ============================================================ */
+#page-auth {
+  align-items: center; justify-content: center;
+  padding: 24px; min-height: 100vh;
+}
+.auth-logo {
+  text-align: center; margin-bottom: 32px;
+}
+.auth-logo-icon { font-size: 64px; line-height: 1; margin-bottom: 8px; animation: float 3s ease-in-out infinite; }
+@keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
+.auth-logo-title {
+  font-family: 'DotGothic16', monospace;
+  font-size: 26px; color: var(--yellow);
+  letter-spacing: 3px;
+  text-shadow: 0 0 30px rgba(245,200,66,0.4);
+}
+.auth-logo-sub { font-size: 12px; color: var(--text-2); margin-top: 4px; }
+.auth-card { width: 100%; max-width: 400px; }
+.auth-tabs { display: flex; background: rgba(255,255,255,0.04); border-radius: var(--radius-sm); padding: 4px; margin-bottom: 24px; }
+.auth-tab {
+  flex: 1; padding: 8px; text-align: center;
+  font-size: 13px; font-weight: 700; border-radius: 6px;
+  cursor: pointer; transition: all 0.2s; color: var(--text-2);
+}
+.auth-tab.active { background: var(--yellow); color: #1a1200; }
+.auth-form { display: flex; flex-direction: column; gap: 16px; }
+.auth-divider { text-align: center; font-size: 11px; color: var(--text-3); margin: 4px 0; }
+.auth-referral-note { font-size: 11px; color: var(--teal); text-align: center; }
+
+/* ============================================================
+   🎮 메인 게임 화면
+   ============================================================ */
+#page-game {
+  padding-bottom: 80px;
+  align-items: center;
+}
+.game-header {
+  width: 100%; padding: 16px 20px 8px;
+  display: flex; justify-content: space-between; align-items: center;
+}
+.game-header-name { font-family: 'DotGothic16', monospace; font-size: 14px; color: var(--yellow); }
+.game-header-points {
+  display: flex; align-items: center; gap: 6px;
+  background: rgba(245,200,66,0.12);
+  border: 1px solid rgba(245,200,66,0.25);
+  border-radius: 999px; padding: 6px 14px;
+  font-size: 13px; font-weight: 700; color: var(--yellow);
+}
+
+/* 디바이스 */
+.device-wrap { display: flex; flex-direction: column; align-items: center; padding: 8px 20px; }
+.device-body {
+  background: var(--yellow);
+  border-radius: 50% 50% 45% 45% / 40% 40% 50% 50%;
+  width: min(280px, 85vw); height: min(310px, 92vw);
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: flex-start; padding-top: min(22px,6vw);
+  box-shadow: 0 6px 0 var(--yellow-dim), 0 9px 0 #8a6800, 0 16px 40px rgba(0,0,0,0.6);
+  position: relative;
+}
+/* 고리 */
+.device-body::before {
+  content: '';
+  position: absolute; top: -16px; left: 50%; transform: translateX(-50%);
+  width: 18px; height: 18px;
+  border: 3.5px solid var(--yellow-dim);
+  border-radius: 50%;
+}
+.screen-frame {
+  background: #1a1a1a;
+  border-radius: 14px;
+  width: min(192px,57vw); height: min(148px,44vw);
+  display: flex; align-items: center; justify-content: center; padding: 5px;
+  box-shadow: inset 0 3px 8px rgba(0,0,0,0.9);
+}
+.screen {
+  background: var(--screen-bg);
+  border-radius: 10px; width: 100%; height: 100%;
+  position: relative; overflow: hidden;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+}
+.screen.dark { filter: brightness(0.2); }
+.stats-bar {
+  position: absolute; top: 5px; left: 6px; right: 6px;
+  display: flex; gap: 3px;
+}
+.stat-col { display: flex; flex-direction: column; align-items: center; flex: 1; gap: 2px; }
+.stat-lbl { font-size: 7px; color: var(--screen-dark); font-weight: 700; font-family: 'DotGothic16', monospace; }
+.stat-bg { width: 100%; height: 5px; background: rgba(42,58,16,0.25); border-radius: 3px; }
+.stat-fill { height: 100%; border-radius: 3px; background: var(--screen-dark); transition: width 0.4s, background 0.4s; }
+.stat-fill.lo { background: #cc3333; }
+.stat-fill.mi { background: #bb8800; }
+#game-canvas { image-rendering: pixelated; width: min(68px,20vw); height: min(68px,20vw); }
+#game-msg { position: absolute; bottom: 5px; font-size: 8px; color: var(--screen-dark); font-weight: 700; font-family: 'DotGothic16', monospace; text-align: center; width: 100%; animation: blink 0.6s step-end infinite; }
+@keyframes blink { 50%{opacity:0.4} }
+#poop-el { position: absolute; bottom: 16px; right: 6px; font-size: min(12px,3.5vw); }
+#zz-el { position: absolute; top: 20px; right: 7px; font-size: 11px; color: var(--screen-dark); display: none; font-family: 'DotGothic16', monospace; animation: float 1.5s ease-in-out infinite; }
+.screen-overlay {
+  position: absolute; inset: 0; background: var(--screen-bg);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  border-radius: 10px; z-index: 10;
+  font-family: 'DotGothic16', monospace; color: var(--screen-dark);
+  text-align: center; gap: 5px; cursor: pointer;
+  animation: pulse 1.6s ease-in-out infinite;
+}
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.6} }
+.screen-overlay.hidden { display: none; }
+.evo-flash { position: absolute; inset: 0; border-radius: 10px; background: white; opacity: 0; pointer-events: none; z-index: 20; transition: opacity 0.1s; }
+.evo-flash.on { opacity: 1; }
+
+/* HW 버튼들 */
+.hw-btns { display: flex; gap: min(18px,5vw); margin-top: min(14px,4vw); }
+.hw-btn {
+  width: min(46px,13vw); height: min(46px,13vw);
+  border-radius: 50%; border: none; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-size: min(20px,5.5vw);
+  transition: transform 0.08s, box-shadow 0.08s;
+  -webkit-tap-highlight-color: transparent;
+}
+.hw-btn:active { transform: translateY(3px); }
+.hw-btn.r { background: #e05050; box-shadow: 0 4px 0 #903030; }
+.hw-btn.b { background: #4488ee; box-shadow: 0 4px 0 #224488; }
+.hw-btn.g { background: #44bb66; box-shadow: 0 4px 0 #226633; }
+.hw-btn.r:active { box-shadow: 0 1px 0 #903030; }
+.hw-btn.b:active { box-shadow: 0 1px 0 #224488; }
+.hw-btn.g:active { box-shadow: 0 1px 0 #226633; }
+
+/* 액션 버튼 패널 */
+.action-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; width: 100%; margin-top: 12px; padding: 0 20px; }
+.action-btn {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md); padding: 11px 8px;
+  font-size: min(12px,3.5vw); cursor: pointer;
+  color: var(--text-1); font-family: 'Noto Sans KR', sans-serif;
+  font-weight: 500; transition: all 0.15s; display: flex;
+  align-items: center; justify-content: center; gap: 5px;
+  -webkit-tap-highlight-color: transparent;
+}
+.action-btn:active { transform: scale(0.97); background: rgba(255,255,255,0.1); }
+.action-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+/* 정보 바 */
+.info-row { display: flex; gap: 14px; font-size: 11px; color: var(--text-2); margin-top: 10px; font-family: 'DotGothic16', monospace; }
+.info-val { color: var(--text-1); }
+
+/* 30일 프로그레스 */
+.day-bar-wrap { width: 100%; padding: 0 20px; margin-top: 12px; }
+.day-bar-label { display: flex; justify-content: space-between; font-size: 11px; color: var(--text-2); margin-bottom: 6px; }
+.day-bar-bg { width: 100%; height: 6px; background: rgba(255,255,255,0.08); border-radius: 3px; }
+.day-bar-fill { height: 100%; background: linear-gradient(90deg, var(--teal), var(--yellow)); border-radius: 3px; transition: width 0.6s; }
+
+/* ============================================================
+   🛍️ 상점 화면
+   ============================================================ */
+#page-shop { padding: 20px 16px 100px; }
+.page-title { font-family: 'DotGothic16', monospace; font-size: 20px; color: var(--yellow); margin-bottom: 6px; }
+.page-sub { font-size: 12px; color: var(--text-2); margin-bottom: 20px; }
+.shop-points-banner {
+  background: linear-gradient(135deg, rgba(245,200,66,0.15), rgba(245,200,66,0.05));
+  border: 1px solid rgba(245,200,66,0.3);
+  border-radius: var(--radius-lg); padding: 16px 20px;
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 20px;
+}
+.shop-points-val { font-size: 24px; font-weight: 700; color: var(--yellow); }
+.shop-points-lbl { font-size: 12px; color: var(--text-2); }
+.shop-section-title { font-size: 13px; font-weight: 700; color: var(--text-2); margin-bottom: 12px; text-transform: uppercase; letter-spacing: 1px; }
+.shop-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 24px; }
+.shop-item {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md); padding: 16px 12px;
+  display: flex; flex-direction: column; align-items: center;
+  gap: 8px; cursor: pointer; transition: all 0.15s;
+}
+.shop-item:hover { border-color: var(--border-hi); background: var(--bg-card2); }
+.shop-item:active { transform: scale(0.97); }
+.shop-item-icon { font-size: 32px; }
+.shop-item-name { font-size: 13px; font-weight: 700; }
+.shop-item-desc { font-size: 10px; color: var(--text-2); text-align: center; }
+.shop-item-price { font-size: 14px; font-weight: 700; color: var(--yellow); }
+.shop-qty-row { display: flex; align-items: center; gap: 8px; }
+.shop-qty-btn { width: 28px; height: 28px; border-radius: 50%; border: 1px solid var(--border); background: transparent; color: var(--text-1); cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; }
+.shop-qty-val { font-size: 14px; font-weight: 700; min-width: 24px; text-align: center; }
+
+/* 충전 패키지 */
+.charge-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 24px; }
+.charge-item {
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: var(--radius-md); padding: 16px 12px;
+  text-align: center; cursor: pointer; transition: all 0.15s; position: relative;
+}
+.charge-item.popular { border-color: rgba(245,200,66,0.5); }
+.charge-badge {
+  position: absolute; top: -8px; left: 50%; transform: translateX(-50%);
+  background: var(--yellow); color: #1a1200;
+  font-size: 10px; font-weight: 700; padding: 2px 10px; border-radius: 999px;
+}
+.charge-pts { font-size: 22px; font-weight: 700; color: var(--yellow); }
+.charge-pts-lbl { font-size: 10px; color: var(--text-2); margin-bottom: 4px; }
+.charge-price { font-size: 13px; color: var(--text-1); font-weight: 700; }
+
+/* 교환 */
+.exchange-box {
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: var(--radius-lg); padding: 20px;
+}
+.exchange-row { display: flex; align-items: center; gap: 12px; }
+.exchange-arrow { font-size: 24px; color: var(--text-3); }
+.exchange-result { font-size: 16px; font-weight: 700; color: var(--teal); }
+
+/* ============================================================
+   🏪 마켓 화면
+   ============================================================ */
+#page-market { padding: 20px 16px 100px; }
+.market-grid { display: flex; flex-direction: column; gap: 12px; }
+.market-card {
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: var(--radius-lg); padding: 16px;
+  display: flex; align-items: center; gap: 16px;
+}
+.market-char-preview {
+  width: 60px; height: 60px;
+  background: var(--screen-bg); border-radius: var(--radius-md);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 28px; flex-shrink: 0;
+}
+.market-info { flex: 1; }
+.market-name { font-size: 14px; font-weight: 700; margin-bottom: 2px; }
+.market-meta { font-size: 11px; color: var(--text-2); }
+.market-price { font-size: 18px; font-weight: 700; color: var(--yellow); }
+.version-badge {
+  display: inline-block; font-size: 10px; font-weight: 700;
+  padding: 2px 8px; border-radius: 999px; margin-left: 6px;
+}
+.v1 { background: rgba(78,205,196,0.2); color: var(--teal); }
+.v2 { background: rgba(83,82,237,0.2); color: #8887ff; }
+.v3 { background: rgba(245,200,66,0.2); color: var(--yellow); }
+
+/* ============================================================
+   👤 마이페이지
+   ============================================================ */
+#page-mypage { padding: 20px 16px 100px; }
+.profile-card {
+  background: linear-gradient(135deg, var(--bg-card), var(--bg-card2));
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl); padding: 24px;
+  text-align: center; margin-bottom: 20px;
+}
+.profile-avatar {
+  width: 72px; height: 72px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--yellow), var(--pink));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 32px; margin: 0 auto 12px;
+}
+.profile-nickname { font-size: 20px; font-weight: 700; margin-bottom: 4px; }
+.profile-email { font-size: 13px; color: var(--text-2); margin-bottom: 16px; }
+.profile-pts { font-size: 32px; font-weight: 700; color: var(--yellow); }
+.profile-pts-lbl { font-size: 12px; color: var(--text-2); }
+.referral-box {
+  background: rgba(78,205,196,0.08); border: 1px solid rgba(78,205,196,0.25);
+  border-radius: var(--radius-lg); padding: 16px; margin-bottom: 20px;
+}
+.referral-title { font-size: 13px; font-weight: 700; color: var(--teal); margin-bottom: 10px; }
+.referral-code-row { display: flex; align-items: center; gap: 8px; }
+.referral-code {
+  flex: 1; background: rgba(0,0,0,0.3); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); padding: 10px 14px;
+  font-family: 'DotGothic16', monospace; font-size: 15px; color: var(--teal);
+}
+.referral-desc { font-size: 11px; color: var(--text-2); margin-top: 8px; }
+.referral-earned { font-size: 12px; color: var(--yellow); margin-top: 4px; }
+.mypage-menu { display: flex; flex-direction: column; gap: 8px; }
+.menu-item {
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: var(--radius-md); padding: 16px;
+  display: flex; align-items: center; justify-content: space-between;
+  cursor: pointer; transition: background 0.15s;
+}
+.menu-item:hover { background: var(--bg-card2); }
+.menu-item-left { display: flex; align-items: center; gap: 12px; font-size: 14px; }
+.menu-item-icon { font-size: 20px; width: 28px; text-align: center; }
+.menu-arrow { color: var(--text-3); font-size: 18px; }
+
+/* ============================================================
+   모달 팝업
+   ============================================================ */
+.modal-bg {
+  position: fixed; inset: 0; z-index: 500;
+  background: rgba(0,0,0,0.75);
+  display: flex; align-items: flex-end; justify-content: center;
+  opacity: 0; pointer-events: none; transition: opacity 0.25s;
+}
+.modal-bg.show { opacity: 1; pointer-events: all; }
+.modal-sheet {
+  background: var(--bg-card);
+  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+  width: 100%; max-width: 480px;
+  padding: 24px 20px 40px;
+  transform: translateY(100%);
+  transition: transform 0.3s cubic-bezier(0.34,1.2,0.64,1);
+}
+.modal-bg.show .modal-sheet { transform: translateY(0); }
+.modal-handle { width: 40px; height: 4px; background: var(--border-hi); border-radius: 2px; margin: 0 auto 20px; }
+.modal-title { font-size: 18px; font-weight: 700; margin-bottom: 16px; }
+</style>
+</head>
+<body>
+
+<!-- 로딩 -->
+<div id="loading">
+  <div style="font-family:'DotGothic16',monospace;font-size:22px;color:var(--yellow);margin-bottom:20px">🥚 HatchUp</div>
+  <div>
+    <span class="loading-dot"></span>
+    <span class="loading-dot"></span>
+    <span class="loading-dot"></span>
+  </div>
+  <div style="font-size:12px;color:var(--text-3);margin-top:12px">불러오는 중...</div>
+</div>
+
+<!-- 토스트 -->
+<div id="toast"></div>
+
+<!-- ============================================================
+     화면 1: 로그인/회원가입
+     ============================================================ -->
+<div id="page-auth" class="page">
+  <div style="margin:auto;width:100%;max-width:420px;padding:32px 20px;">
+    <div class="auth-logo">
+      <div class="auth-logo-icon">🥚</div>
+      <div class="auth-logo-title">HatchUp</div>
+      <div class="auth-logo-sub">키우고 · 성장시키고 · 거래하세요</div>
+    </div>
+
+    <div class="card auth-card">
+      <div class="auth-tabs">
+        <div class="auth-tab active" id="tab-login" onclick="switchAuthTab('login')">로그인</div>
+        <div class="auth-tab" id="tab-register" onclick="switchAuthTab('register')">회원가입</div>
+      </div>
+
+      <!-- 로그인 폼 -->
+      <div id="form-login" class="auth-form">
+        <div class="input-group">
+          <div class="input-label">이메일</div>
+          <input class="input" id="login-email" type="email" placeholder="example@email.com">
+        </div>
+        <div class="input-group">
+          <div class="input-label">비밀번호</div>
+          <input class="input" id="login-pw" type="password" placeholder="비밀번호 입력">
+        </div>
+        <button class="btn btn-primary btn-full" onclick="doLogin()">🔑 로그인</button>
+        <div class="auth-divider">— 또는 —</div>
+        <button class="btn btn-ghost btn-full" onclick="demoLogin()">🎮 체험 모드로 시작</button>
+      </div>
+
+      <!-- 회원가입 폼 -->
+      <div id="form-register" class="auth-form" style="display:none">
+        <div class="input-group">
+          <div class="input-label">이메일</div>
+          <input class="input" id="reg-email" type="email" placeholder="example@email.com">
+        </div>
+        <div class="input-group">
+          <div class="input-label">닉네임 (2~10자)</div>
+          <input class="input" id="reg-nick" type="text" placeholder="내 닉네임" maxlength="10">
+        </div>
+        <div class="input-group">
+          <div class="input-label">비밀번호 (영문+숫자 8자 이상)</div>
+          <input class="input" id="reg-pw" type="password" placeholder="비밀번호 설정">
+        </div>
+        <div class="input-group">
+          <div class="input-label">추천인 코드 (선택)</div>
+          <input class="input" id="reg-ref" type="text" placeholder="추천인 코드 입력 시 100P 추가" style="text-transform:uppercase">
+        </div>
+        <div class="auth-referral-note">✨ 추천인 코드 입력 시 +100P 보너스!</div>
+        <button class="btn btn-primary btn-full" onclick="doRegister()">🥚 가입하고 시작!</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     화면 2: 게임
+     ============================================================ -->
+<div id="page-game" class="page">
+  <div class="game-header">
+    <div class="game-header-name" id="g-nickname">HatchUp</div>
+    <div class="game-header-points">⭐ <span id="g-points">0</span>P</div>
+  </div>
+
+  <div class="device-wrap">
+    <div class="device-body">
+      <div class="screen-frame">
+        <div class="screen" id="g-screen">
+          <div class="stats-bar">
+            <div class="stat-col">
+              <div class="stat-lbl">배고픔</div>
+              <div class="stat-bg"><div class="stat-fill" id="sf-hunger" style="width:100%"></div></div>
+            </div>
+            <div class="stat-col">
+              <div class="stat-lbl">행복</div>
+              <div class="stat-bg"><div class="stat-fill" id="sf-happy" style="width:100%"></div></div>
+            </div>
+            <div class="stat-col">
+              <div class="stat-lbl">건강</div>
+              <div class="stat-bg"><div class="stat-fill" id="sf-health" style="width:100%"></div></div>
+            </div>
+          </div>
+          <canvas id="game-canvas" width="60" height="60"></canvas>
+          <div id="zz-el">💤</div>
+          <div id="poop-el"></div>
+          <div id="game-msg"></div>
+          <div class="evo-flash" id="evo-flash"></div>
+          <div class="screen-overlay" id="g-overlay" onclick="startGame()">
+            <div style="font-size:28px">🥚</div>
+            <div style="font-size:11px">알에서 태어났어요!</div>
+            <div style="font-size:9px;opacity:0.7">화면을 탭해서 시작!</div>
+          </div>
+        </div>
+      </div>
+      <div class="hw-btns">
+        <button class="hw-btn r" onclick="act('feed')" title="밥주기">🍖</button>
+        <button class="hw-btn b" onclick="act('play')" title="놀기">🎮</button>
+        <button class="hw-btn g" onclick="act('clean')" title="청소">🪣</button>
+      </div>
+    </div>
+
+    <!-- 날짜 바 -->
+    <div class="day-bar-wrap">
+      <div class="day-bar-label">
+        <span>성장 기간</span>
+        <span id="day-text">0 / 30일</span>
+      </div>
+      <div class="day-bar-bg"><div class="day-bar-fill" id="day-fill" style="width:0%"></div></div>
+    </div>
+  </div>
+
+  <!-- 액션 버튼 -->
+  <div class="action-grid">
+    <button class="action-btn" id="btn-sleep" onclick="act('sleep')">😴 재우기</button>
+    <button class="action-btn" id="btn-med" onclick="act('medicine')">💊 약 주기</button>
+    <button class="action-btn" id="btn-light" onclick="act('light')">💡 불끄기</button>
+    <button class="action-btn" onclick="act('status')">📊 상태보기</button>
+  </div>
+
+  <!-- 인벤토리 요약 -->
+  <div class="info-row" id="inv-row" style="padding:0 20px;flex-wrap:wrap;gap:8px;">
+    <span>🍖 <span class="info-val" id="inv-food">0</span></span>
+    <span>💊 <span class="info-val" id="inv-med">0</span></span>
+    <span>🪣 <span class="info-val" id="inv-clean">0</span></span>
+    <span>🎾 <span class="info-val" id="inv-toy">0</span></span>
+  </div>
+
+  <div class="info-row" style="padding:0 20px;margin-top:4px;">
+    나이: <span class="info-val" id="g-age">0</span>살 &nbsp;
+    <span id="g-stage" style="color:var(--yellow)">알</span> &nbsp;
+    이름: <span class="info-val" id="g-name">?</span>
+  </div>
+
+  <!-- 성인 판매 버튼 -->
+  <div style="padding:12px 20px;width:100%;">
+    <button class="btn btn-primary btn-full" id="btn-sell" style="display:none" onclick="openSell()">
+      💰 캐릭터 판매하기
+    </button>
+  </div>
+</div>
+
+<!-- ============================================================
+     화면 3: 상점
+     ============================================================ -->
+<div id="page-shop" class="page">
+  <div class="page-title">🛍️ 상점</div>
+  <div class="page-sub">포인트로 아이템을 구매하세요</div>
+
+  <div class="shop-points-banner">
+    <div>
+      <div class="shop-points-lbl">내 포인트</div>
+      <div class="shop-points-val">⭐ <span id="shop-points">0</span>P</div>
+    </div>
+    <button class="btn btn-sm btn-ghost" onclick="openChargeModal()">+ 충전하기</button>
+  </div>
+
+  <!-- 포인트 교환 -->
+  <div class="shop-section-title">🔄 포인트 → 먹이 교환 (10P = 1개)</div>
+  <div class="exchange-box" style="margin-bottom:24px">
+    <div class="exchange-row">
+      <div class="input-group" style="flex:1">
+        <div class="input-label">교환할 포인트</div>
+        <input class="input" id="ex-pts" type="number" placeholder="10" min="10" step="10" value="10">
+      </div>
+      <div class="exchange-arrow">→</div>
+      <div style="text-align:center">
+        <div class="input-label">먹이</div>
+        <div class="exchange-result" id="ex-result">1개</div>
+      </div>
+    </div>
+    <button class="btn btn-full" style="background:rgba(78,205,196,0.15);color:var(--teal);border:1px solid rgba(78,205,196,0.3);margin-top:12px" onclick="doExchange()">교환하기</button>
+  </div>
+
+  <!-- 아이템 구매 -->
+  <div class="shop-section-title">🛒 아이템 구매</div>
+  <div class="shop-grid" id="shop-grid">
+    <!-- JS로 채워짐 -->
+  </div>
+
+  <!-- 포인트 충전 -->
+  <div class="shop-section-title">💳 포인트 충전</div>
+  <div class="charge-grid">
+    <div class="charge-item" onclick="doCharge('small')">
+      <div class="charge-pts-lbl">스타터</div>
+      <div class="charge-pts">100P</div>
+      <div class="charge-price">₩1,000</div>
+    </div>
+    <div class="charge-item popular" onclick="doCharge('medium')">
+      <div class="charge-badge">인기!</div>
+      <div class="charge-pts-lbl">인기</div>
+      <div class="charge-pts">500P</div>
+      <div class="charge-price">₩4,500</div>
+    </div>
+    <div class="charge-item" onclick="doCharge('large')">
+      <div class="charge-pts-lbl">대용량</div>
+      <div class="charge-pts">1,000P</div>
+      <div class="charge-price">₩8,000</div>
+    </div>
+    <div class="charge-item" onclick="doCharge('xl')">
+      <div class="charge-pts-lbl">프리미엄</div>
+      <div class="charge-pts">3,000P</div>
+      <div class="charge-price">₩20,000</div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     화면 4: 마켓
+     ============================================================ -->
+<div id="page-market" class="page">
+  <div class="page-title">🏪 캐릭터 마켓</div>
+  <div class="page-sub">다른 유저의 캐릭터를 구매하세요</div>
+  <div class="market-grid" id="market-grid">
+    <div style="text-align:center;color:var(--text-2);padding:40px 0;font-size:14px">
+      로딩 중...
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     화면 5: 마이페이지
+     ============================================================ -->
+<div id="page-mypage" class="page">
+  <div class="profile-card">
+    <div class="profile-avatar" id="my-avatar">😊</div>
+    <div class="profile-nickname" id="my-nick">닉네임</div>
+    <div class="profile-email" id="my-email">이메일</div>
+    <div class="profile-pts" id="my-pts">0</div>
+    <div class="profile-pts-lbl">포인트</div>
+  </div>
+
+  <div class="referral-box">
+    <div class="referral-title">🎁 내 추천인 코드</div>
+    <div class="referral-code-row">
+      <div class="referral-code" id="my-ref-code">--------</div>
+      <button class="btn btn-sm btn-ghost" onclick="copyRef()">복사</button>
+      <button class="btn btn-sm" style="background:rgba(78,205,196,0.15);color:var(--teal);border:1px solid rgba(78,205,196,0.3)" onclick="shareRef()">공유</button>
+    </div>
+    <div class="referral-desc">친구가 이 코드로 가입하면 둘 다 100P!</div>
+    <div class="referral-earned" id="my-ref-earned"></div>
+  </div>
+
+  <div class="mypage-menu">
+    <div class="menu-item" onclick="showHistory()">
+      <div class="menu-item-left"><div class="menu-item-icon">📜</div>포인트 거래 내역</div>
+      <div class="menu-arrow">›</div>
+    </div>
+    <div class="menu-item" onclick="showMyChars()">
+      <div class="menu-item-left"><div class="menu-item-icon">🐾</div>내 캐릭터 목록</div>
+      <div class="menu-arrow">›</div>
+    </div>
+    <div class="menu-item" onclick="showNotice()">
+      <div class="menu-item-left"><div class="menu-item-icon">📢</div>공지사항</div>
+      <div class="menu-arrow">›</div>
+    </div>
+    <div class="menu-item" onclick="doLogout()">
+      <div class="menu-item-left" style="color:var(--red)"><div class="menu-item-icon">🚪</div>로그아웃</div>
+      <div class="menu-arrow" style="color:var(--red)">›</div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     하단 네비게이션
+     ============================================================ -->
+<div id="nav-bar" style="display:none">
+  <button class="nav-btn active" id="nav-game" onclick="goPage('game')">
+    <span class="nav-icon">🎮</span><span>게임</span>
+  </button>
+  <button class="nav-btn" id="nav-shop" onclick="goPage('shop')">
+    <span class="nav-icon">🛍️</span><span>상점</span>
+  </button>
+  <button class="nav-btn" id="nav-market" onclick="goPage('market')">
+    <span class="nav-icon">🏪</span><span>마켓</span>
+  </button>
+  <button class="nav-btn" id="nav-mypage" onclick="goPage('mypage')">
+    <span class="nav-icon">👤</span><span>마이</span>
+  </button>
+</div>
+
+<!-- 판매 모달 -->
+<div class="modal-bg" id="modal-sell">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">💰 캐릭터 판매</div>
+    <p style="font-size:13px;color:var(--text-2);margin-bottom:16px">성인이 된 캐릭터를 마켓에 올려보세요. 판매 수익의 90%가 포인트로 지급됩니다.</p>
+    <div class="input-group" style="margin-bottom:16px">
+      <div class="input-label">판매 가격 (포인트)</div>
+      <input class="input" id="sell-price" type="number" placeholder="300~800" min="300" max="800">
+    </div>
+    <div style="font-size:11px;color:var(--text-2);margin-bottom:16px">1버전 권장가: 300P ~ 800P</div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-ghost btn-full" onclick="closeModal('modal-sell')">취소</button>
+      <button class="btn btn-primary btn-full" onclick="doSell()">판매 등록</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// ⚙️ 앱 설정
+// 백엔드 서버 주소를 여기서 변경하세요!
+// 로컬 테스트: http://localhost:3000
+// 배포 후: https://내서버주소.com
+// ============================================================
+const API_BASE = window.location.hostname === 'localhost'
+  ? 'http://localhost:3000/api'
+  : '/api'; // 같은 서버에 배포된 경우
+
+// ============================================================
+// 앱 상태 저장소
+// ============================================================
+const APP = {
+  token:     localStorage.getItem('tama_token') || null,  // 로그인 토큰
+  user:      JSON.parse(localStorage.getItem('tama_user') || 'null'), // 유저 정보
+  isDemo:    false,  // 체험 모드 여부
+  gameStarted: false,
+  gameInterval: null,
+  char: null, // 현재 캐릭터 상태
+  inv:  {},   // 인벤토리
+};
+
+// 캐릭터 로컬 상태 (오프라인 / 체험 모드용)
+const LOCAL_CHAR = {
+  hunger: 100, happy: 100, health: 100,
+  age: 0, poop: 0, sleeping: false, sick: false, dead: false,
+  stage: 'egg', tick: 0, animFrame: 0, lightOff: false,
+  version: 1,
+};
+
+// ============================================================
+// API 호출 헬퍼 (자동 토큰 + 오류 처리)
+// ============================================================
+async function api(method, path, body) {
+  try {
+    const opts = {
+      method,
+      headers: { 'Content-Type': 'application/json' },
+    };
+    if (APP.token) opts.headers['Authorization'] = 'Bearer ' + APP.token;
+    if (body) opts.body = JSON.stringify(body);
+
+    const res = await fetch(API_BASE + path, opts);
+    const data = await res.json();
+
+    // 로그인 만료 시 자동 로그아웃
+    if (res.status === 401 && data.expired) {
+      doLogout();
+      toast('로그인이 만료됐습니다. 다시 로그인해주세요.');
+      return null;
+    }
+    return data;
+  } catch (e) {
+    // 서버 연결 실패 시 체험 모드로 전환
+    console.warn('API 연결 실패, 로컬 모드로 동작:', e.message);
+    return null;
+  }
+}
+
+// ============================================================
+// 토스트 알림
+// ============================================================
+let toastTimer;
+function toast(msg, duration = 2200) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), duration);
+}
+
+// ============================================================
+// 페이지 이동
+// ============================================================
+function goPage(name) {
+  // 모든 페이지 숨기기
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+
+  // 선택 페이지 보이기
+  document.getElementById('page-' + name).classList.add('active');
+  const navBtn = document.getElementById('nav-' + name);
+  if (navBtn) navBtn.classList.add('active');
+
+  // 페이지별 데이터 로드
+  if (name === 'shop')   loadShop();
+  if (name === 'market') loadMarket();
+  if (name === 'mypage') loadMyPage();
+}
+
+// ============================================================
+// 로그인/회원가입 탭 전환
+// ============================================================
+function switchAuthTab(tab) {
+  document.getElementById('tab-login').classList.toggle('active', tab === 'login');
+  document.getElementById('tab-register').classList.toggle('active', tab === 'register');
+  document.getElementById('form-login').style.display    = tab === 'login'    ? 'flex' : 'none';
+  document.getElementById('form-register').style.display = tab === 'register' ? 'flex' : 'none';
+}
+
+// URL에 추천인 코드가 있으면 자동 입력
+function checkRefCode() {
+  const params = new URLSearchParams(window.location.search);
+  const ref = params.get('ref');
+  if (ref) {
+    document.getElementById('reg-ref').value = ref.toUpperCase();
+    switchAuthTab('register');
+    toast('추천인 코드가 자동 입력됐습니다! 🎁');
+  }
+}
+
+// ============================================================
+// 로그인
+// ============================================================
+async function doLogin() {
+  const email = document.getElementById('login-email').value.trim();
+  const pw    = document.getElementById('login-pw').value;
+  if (!email || !pw) { toast('이메일과 비밀번호를 입력해주세요.'); return; }
+
+  const data = await api('POST', '/auth/login', { email, password: pw });
+  if (!data) {
+    // 서버 없으면 체험 모드
+    toast('서버 연결 실패. 체험 모드로 시작합니다!');
+    demoLogin(); return;
+  }
+  if (!data.success) { toast('❌ ' + data.message); return; }
+
+  APP.token = data.token;
+  APP.user  = data.user;
+  localStorage.setItem('tama_token', data.token);
+  localStorage.setItem('tama_user',  JSON.stringify(data.user));
+  enterApp();
+}
+
+// ============================================================
+// 회원가입
+// ============================================================
+async function doRegister() {
+  const email    = document.getElementById('reg-email').value.trim();
+  const nickname = document.getElementById('reg-nick').value.trim();
+  const password = document.getElementById('reg-pw').value;
+  const refCode  = document.getElementById('reg-ref').value.trim();
+
+  if (!email || !nickname || !password) { toast('모든 항목을 입력해주세요.'); return; }
+
+  const data = await api('POST', '/auth/register', { email, nickname, password, referralCode: refCode });
+  if (!data) { toast('서버 연결 실패. 체험 모드로 시작합니다!'); demoLogin(); return; }
+  if (!data.success) { toast('❌ ' + data.message); return; }
+
+  APP.token = data.token;
+  APP.user  = data.user;
+  localStorage.setItem('tama_token', data.token);
+  localStorage.setItem('tama_user',  JSON.stringify(data.user));
+  toast('🥚 환영합니다! ' + data.message);
+  enterApp();
+}
+
+// ============================================================
+// 체험 모드 (서버 없이 로컬로 플레이)
+// ============================================================
+function demoLogin() {
+  APP.isDemo = true;
+  APP.user   = { nickname: '체험유저', email: 'demo@demo.com', points: 500, referralCode: 'DEMO1234' };
+  APP.inv    = { food: 5, medicine: 3, clean: 3, toy: 2, sleep: 2 };
+  enterApp();
+}
+
+// ============================================================
+// 앱 진입 (로그인 성공 후)
+// ============================================================
+function enterApp() {
+  document.getElementById('page-auth').classList.remove('active');
+  document.getElementById('nav-bar').style.display = 'flex';
+  updateGameHeader();
+  goPage('game');
+  if (!APP.isDemo) loadGameStatus();
+}
+
+// ============================================================
+// 게임 헤더 업데이트
+// ============================================================
+function updateGameHeader() {
+  if (!APP.user) return;
+  document.getElementById('g-nickname').textContent = APP.user.nickname + '의 HatchUp';
+  document.getElementById('g-points').textContent   = (APP.user.points || 0).toLocaleString();
+  document.getElementById('shop-points').textContent = (APP.user.points || 0).toLocaleString();
+}
+
+// ============================================================
+// 게임 상태 서버에서 불러오기
+// ============================================================
+async function loadGameStatus() {
+  const data = await api('GET', '/game/status');
+  if (!data || !data.success) return;
+
+  if (data.character) {
+    APP.char = data.character;
+    APP.inv  = data.inventory || {};
+    APP.user.points = data.points;
+    updateGameUI();
+  }
+  if (data.inventory) {
+    document.getElementById('inv-food').textContent  = data.inventory.food  || 0;
+    document.getElementById('inv-med').textContent   = data.inventory.medicine || 0;
+    document.getElementById('inv-clean').textContent = data.inventory.clean || 0;
+    document.getElementById('inv-toy').textContent   = data.inventory.toy   || 0;
+  }
+  updateGameHeader();
+}
+
+function updateGameUI() {
+  if (!APP.char) return;
+  const c = APP.char;
+  updateBars(c.hunger, c.happy, c.health);
+  document.getElementById('g-age').textContent   = c.age || 0;
+  document.getElementById('g-stage').textContent = stageLabel(c.stage);
+  document.getElementById('g-name').textContent  = charName(c.stage);
+  document.getElementById('poop-el').textContent = '💩'.repeat(Math.min(c.poop || 0, 4));
+
+  const days = c.daysAlive || 0;
+  document.getElementById('day-text').textContent = days + ' / 30일';
+  document.getElementById('day-fill').style.width = Math.min(100, (days / 30) * 100) + '%';
+
+  const sellBtn = document.getElementById('btn-sell');
+  if (c.canSell) sellBtn.style.display = 'block';
+  else sellBtn.style.display = 'none';
+}
+
+function stageLabel(s) {
+  return { egg:'알', baby:'아기', child:'어린이', teen:'청소년', adult:'어른', dead:'천사' }[s] || '알';
+}
+function charName(s) {
+  return { egg:'?', baby:'해치루', child:'해치비', teen:'해치나', adult:'해치메', dead:'천사' }[s] || '?';
+}
+
+// ============================================================
+// 캔버스 픽셀 그리기
+// ============================================================
+const canvas = document.getElementById('game-canvas');
+const ctx    = canvas.getContext('2d');
+
+function px(x, y, c, s = 3) {
+  ctx.fillStyle = c;
+  ctx.fillRect(x * s + 12, y * s + 12, s, s);
+}
+
+let animF = 0;
+const DRAW = {
+  egg(f)  {
+    const s=4, b=Math.sin(f*0.1)>0?0:1;
+    [[1,2],[0,1],[0,2],[0,3],[1,4],[2,4],[3,3],[3,2],[3,1],[2,0],[1,0]].forEach(([x,y])=>px(x,y+b,'#ffe0b0',s));
+    [[1,2],[1,3],[2,2]].forEach(([x,y])=>px(x,y+b,'#ffb060',s));
+  },
+  baby(f) {
+    const s=3, b=Math.sin(f*0.15)>0?0:1;
+    [[1,0],[2,0],[3,0],[0,1],[4,1],[0,2],[4,2],[0,3],[1,3],[2,3],[3,3],[4,3],[1,4],[3,4],[1,5],[3,5]].forEach(([x,y])=>px(x,y+b,'#ffccaa',s));
+    [[1,1],[2,1],[3,1]].forEach(([x,y])=>px(x,y+b,'#fff8e8',s));
+    [[1,2],[3,2]].forEach(([x,y])=>px(x,y+b,'#222',s));
+    px(2,3+b,'#ff9999',s);
+  },
+  child(f) {
+    const s=3, b=Math.floor(f/8)%2;
+    [[2,0],[3,0],[4,0],[1,1],[5,1],[1,2],[5,2],[1,3],[2,3],[3,3],[4,3],[5,3],[0,4],[6,4],[1,5],[5,5],[1,6],[5,6]].forEach(([x,y])=>px(x,y+b,'#aaccff',s));
+    [[2,1],[3,1],[4,1]].forEach(([x,y])=>px(x,y+b,'#ddeeff',s));
+    [[2,2],[4,2]].forEach(([x,y])=>px(x,y+b,'#222',s));
+    px(3,3+b,'#ffaaaa',s);
+  },
+  teen(f) {
+    const s=3, b=Math.floor(f/6)%2;
+    [[2,0],[3,0],[4,0],[1,1],[5,1],[0,2],[6,2],[0,3],[6,3],[1,4],[2,4],[3,4],[4,4],[5,4],[0,5],[6,5],[1,6],[5,6],[2,7],[4,7]].forEach(([x,y])=>px(x,y+b,'#ffaacc',s));
+    [[2,1],[3,1],[4,1]].forEach(([x,y])=>px(x,y+b,'#fff0f5',s));
+    [[2,2],[4,2]].forEach(([x,y])=>px(x,y+b,'#222',s));
+    [[2,3],[3,3],[4,3]].forEach(([x,y])=>px(x,y+b,'#ff6699',s));
+  },
+  adult(f) {
+    const s=3, b=Math.floor(f/5)%2;
+    [[2,0],[3,0],[4,0],[5,0],[1,1],[6,1],[0,2],[7,2],[0,3],[7,3],[0,4],[7,4],[1,5],[2,5],[3,5],[4,5],[5,5],[6,5],[1,6],[6,6],[0,7],[7,7],[1,8],[6,8]].forEach(([x,y])=>px(x,y+b,'#aaffcc',s));
+    [[2,1],[3,1],[4,1],[5,1]].forEach(([x,y])=>px(x,y+b,'#e8fff2',s));
+    [[2,3],[5,3]].forEach(([x,y])=>px(x,y+b,'#222',s));
+    [[3,4],[4,4]].forEach(([x,y])=>px(x,y+b,'#ff9999',s));
+  },
+  dead(f) {
+    [[2,0],[3,0],[2,1],[3,1]].forEach(([x,y])=>{ctx.fillStyle='rgba(255,255,255,0.5)';ctx.fillRect(x*4+14,y*4+6,4,4);});
+    [[1,3],[5,3],[0,4],[2,4],[4,4],[6,4],[1,5],[5,5],[2,6],[4,6],[3,7]].forEach(([x,y])=>{ctx.fillStyle='#aaa';ctx.fillRect(x*3+12,y*3+12,3,3);});
+  },
+  sleeping(f) {
+    const s=3;
+    [[2,0],[3,0],[4,0],[1,1],[5,1],[0,2],[6,2],[0,3],[6,3],[1,4],[2,4],[3,4],[4,4],[5,4]].forEach(([x,y])=>px(x,y,'#8899bb',s));
+    [[1,2],[2,2],[3,2],[4,2],[5,2]].forEach(([x,y])=>px(x,y,'#667799',s));
+    [[2,3],[4,3]].forEach(([x,y])=>px(x,y,'#556688',s));
+  },
+};
+
+// 로컬 상태 기반으로 그리기
+const G = Object.assign({}, LOCAL_CHAR);
+
+function drawPet() {
+  ctx.clearRect(0, 0, 60, 60);
+  if (G.dead)     { DRAW.dead(animF); return; }
+  if (G.sleeping) { DRAW.sleeping(animF); return; }
+  const fn = DRAW[G.stage] || DRAW.baby;
+  fn(animF);
+  if (G.sick) { ctx.fillStyle='rgba(80,180,80,0.2)'; ctx.fillRect(0,0,60,60); }
+}
+
+function updateBars(h, hp, hl) {
+  const set = (id, v) => {
+    const el = document.getElementById(id);
+    el.style.width = v + '%';
+    el.className = 'stat-fill' + (v<25?' lo':v<50?' mi':'');
+  };
+  set('sf-hunger', h ?? G.hunger);
+  set('sf-happy',  hp ?? G.happy);
+  set('sf-health', hl ?? G.health);
+}
+
+// ============================================================
+// 게임 시작
+// ============================================================
+function startGame() {
+  if (APP.gameStarted) return;
+  APP.gameStarted = true;
+  document.getElementById('g-overlay').classList.add('hidden');
+  APP.gameInterval = setInterval(gameTick, 220);
+  drawPet(); updateBars();
+  toast('🥚 게임 시작! 잘 돌봐줘요~');
+}
+
+// ============================================================
+// 게임 틱 (로컬 상태 업데이트)
+// ============================================================
+function gameTick() {
+  animF++;
+  G.tick++;
+  if (G.dead) { drawPet(); return; }
+  if (G.sleeping) { drawPet(); return; }
+
+  if (G.tick % 20 === 0) {
+    G.hunger = Math.max(0, G.hunger - (G.stage==='adult'?8:5));
+    G.happy  = Math.max(0, G.happy  - 3);
+  }
+  if (G.tick % 35 === 0) {
+    if (G.hunger < 30 || G.poop >= 3) G.health = Math.max(0, G.health - 8);
+  }
+  if (G.tick % 55 === 0 && G.stage !== 'egg') {
+    G.poop = Math.min(5, G.poop + 1);
+    if (G.poop >= 3 && Math.random() < 0.2) G.sick = true;
+  }
+
+  // 진화
+  const evo = ['egg','baby','child','teen','adult'];
+  const idx = evo.indexOf(G.stage);
+  if (G.tick % 120 === 0 && G.stage === 'egg') triggerEvo(evo[idx+1]);
+  if (G.tick % 260 === 0 && idx > 0 && idx < evo.length-1 && G.health > 40) { G.age++; triggerEvo(evo[idx+1]); }
+  if (G.stage !== 'egg' && G.tick % 200 === 0) G.age++;
+
+  // 사망
+  if (G.health <= 0) { G.dead = true; G.stage = 'dead'; toast('💀 돌아가셨어요... 새로고침 후 재시작'); }
+
+  // 경고 메시지
+  if (!G.sick) {
+    if (G.hunger < 25) showGameMsg('배고파요! 🍖');
+    else if (G.poop >= 3) showGameMsg('치워주세요! 🪣');
+    else if (G.happy < 20) showGameMsg('심심해요! 🎮');
+    else clearGameMsg();
+  } else {
+    showGameMsg('아파요! 💊');
+  }
+
+  updateBars(G.hunger, G.happy, G.health);
+  document.getElementById('poop-el').textContent = '💩'.repeat(Math.min(G.poop, 4));
+  document.getElementById('g-age').textContent   = G.age;
+  document.getElementById('g-stage').textContent = stageLabel(G.stage);
+  document.getElementById('g-name').textContent  = charName(G.stage);
+  drawPet();
+}
+
+let msgTimer;
+function showGameMsg(m) {
+  document.getElementById('game-msg').textContent = m;
+  clearTimeout(msgTimer);
+  msgTimer = setTimeout(clearGameMsg, 1800);
+}
+function clearGameMsg() { document.getElementById('game-msg').textContent = ''; }
+
+function triggerEvo(nextStage) {
+  if (!nextStage || G.stage === 'adult') return;
+  G.stage = nextStage;
+  const flash = document.getElementById('evo-flash');
+  [0,200,400].forEach(d => { setTimeout(()=>flash.classList.add('on'),d); setTimeout(()=>flash.classList.remove('on'),d+100); });
+  toast('✨ 진화! ' + stageLabel(nextStage) + '가 됐어요!');
+}
+
+// ============================================================
+// 버튼 액션 — 서버 연결 시 API, 체험 모드는 로컬
+// ============================================================
+async function act(action) {
+  if (G.dead) { toast('이미 사망한 캐릭터입니다.'); return; }
+  if (!APP.gameStarted) { startGame(); return; }
+
+  const invKey = { feed:'food', play:'toy', clean:'clean', medicine:'medicine', sleep:'sleep' };
+
+  if (!APP.isDemo) {
+    // 서버 API 호출
+    const pathMap = { feed:'/game/feed', play:'/game/play', clean:'/game/clean', medicine:'/game/medicine', sleep:'/game/sleep' };
+    if (action === 'status') { toast(`배고픔:${Math.round(G.hunger)} 행복:${Math.round(G.happy)} 건강:${Math.round(G.health)}`); return; }
+    if (action === 'light') { toggleLight(); return; }
+    const data = await api('POST', pathMap[action]);
+    if (data && data.success) {
+      toast(data.message);
+      await loadGameStatus();
+    } else if (data) {
+      toast('❌ ' + data.message);
+    }
+    return;
+  }
+
+  // 체험 모드 로컬 처리
+  if (action === 'feed') {
+    if ((APP.inv.food || 0) <= 0) { toast('먹이가 없어요! 상점에서 구매하세요.'); return; }
+    APP.inv.food--; G.hunger = Math.min(100, G.hunger + 35);
+    document.getElementById('inv-food').textContent = APP.inv.food;
+    toast('냠냠 맛있다! 😋');
+  } else if (action === 'play') {
+    if ((APP.inv.toy || 0) <= 0) { toast('장난감이 없어요! 상점에서 구매하세요.'); return; }
+    APP.inv.toy--; G.happy = Math.min(100, G.happy + 40); G.hunger = Math.max(0, G.hunger - 8);
+    document.getElementById('inv-toy').textContent = APP.inv.toy;
+    toast('신나게 놀았어요! 🎉');
+  } else if (action === 'clean') {
+    if ((APP.inv.clean || 0) <= 0) { toast('청소도구가 없어요! 상점에서 구매하세요.'); return; }
+    APP.inv.clean--; G.poop = 0; G.sick = false;
+    document.getElementById('inv-clean').textContent = APP.inv.clean;
+    toast('깨끗해졌어요! ✨');
+  } else if (action === 'medicine') {
+    if ((APP.inv.medicine || 0) <= 0) { toast('약이 없어요! 상점에서 구매하세요.'); return; }
+    APP.inv.medicine--;
+    const gain = G.sick ? 25 : -5;
+    G.sick = false; G.health = Math.min(100, Math.max(0, G.health + gain));
+    document.getElementById('inv-med').textContent = APP.inv.medicine;
+    toast(gain > 0 ? '나았어요! 💊' : '안 아픈데요? 건강이 줄었어요 😅');
+  } else if (action === 'sleep') {
+    G.sleeping = !G.sleeping;
+    document.getElementById('zz-el').style.display = G.sleeping ? 'block' : 'none';
+    document.getElementById('btn-sleep').textContent = G.sleeping ? '☀️ 깨우기' : '😴 재우기';
+    if (!G.sleeping) { G.health = Math.min(100, G.health+20); G.happy = Math.min(100, G.happy+15); toast('😊 잘 잤어요!'); }
+    else toast('😴 자는 중...');
+  } else if (action === 'light') {
+    toggleLight();
+  } else if (action === 'status') {
+    toast(`배고픔:${Math.round(G.hunger)} 행복:${Math.round(G.happy)} 건강:${Math.round(G.health)}`);
+  }
+  drawPet(); updateBars(G.hunger, G.happy, G.health);
+}
+
+function toggleLight() {
+  G.lightOff = !G.lightOff;
+  document.getElementById('g-screen').classList.toggle('dark', G.lightOff);
+  document.getElementById('btn-light').textContent = G.lightOff ? '💡 불켜기' : '💡 불끄기';
+  toast(G.lightOff ? '🌙 불 껐어요' : '💡 불 켰어요');
+}
+
+// ============================================================
+// 상점
+// ============================================================
+const SHOP_ITEMS = [
+  { type:'food',     icon:'🍖', name:'먹이',    desc:'배고픔 35 회복', price:10 },
+  { type:'medicine', icon:'💊', name:'약',       desc:'병 치료 + 건강 25 회복', price:20 },
+  { type:'clean',    icon:'🪣', name:'청소도구', desc:'변 제거, 위생 개선', price:5 },
+  { type:'toy',      icon:'🎾', name:'장난감',   desc:'행복도 40 증가', price:25 },
+  { type:'sleep',    icon:'💤', name:'수면제',   desc:'재우기 + 건강 회복', price:15 },
+  { type:'light',    icon:'💡', name:'야간등',   desc:'밤에 불 끄기', price:5 },
+];
+
+const shopQty = {}; // 각 아이템 선택 수량
+SHOP_ITEMS.forEach(i => shopQty[i.type] = 1);
+
+async function loadShop() {
+  // 체험 모드는 로컬 데이터 사용
+  renderShopItems();
+  updateGameHeader();
+}
+
+function renderShopItems() {
+  const version = G.version || 1;
+  const grid = document.getElementById('shop-grid');
+  grid.innerHTML = SHOP_ITEMS.map(item => {
+    const price = item.price * version;
+    const qty   = shopQty[item.type] || 1;
+    return `
+    <div class="shop-item">
+      <div class="shop-item-icon">${item.icon}</div>
+      <div class="shop-item-name">${item.name}</div>
+      <div class="shop-item-desc">${item.desc}</div>
+      <div class="shop-qty-row">
+        <button class="shop-qty-btn" onclick="changeQty('${item.type}',-1)">-</button>
+        <span class="shop-qty-val" id="qty-${item.type}">${qty}</span>
+        <button class="shop-qty-btn" onclick="changeQty('${item.type}',1)">+</button>
+      </div>
+      <div class="shop-item-price">${(price*qty).toLocaleString()}P</div>
+      <button class="btn btn-primary btn-sm btn-full" onclick="buyItem('${item.type}',${price})">구매</button>
+    </div>`;
+  }).join('');
+}
+
+function changeQty(type, delta) {
+  shopQty[type] = Math.max(1, Math.min(99, (shopQty[type]||1) + delta));
+  document.getElementById('qty-' + type).textContent = shopQty[type];
+  renderShopItems(); // 가격 업데이트
+}
+
+async function buyItem(type, unitPrice) {
+  const qty   = shopQty[type] || 1;
+  const total = unitPrice * qty;
+
+  if ((APP.user.points || 0) < total) {
+    toast(`포인트가 부족합니다. (필요: ${total}P)`); return;
+  }
+
+  if (!APP.isDemo) {
+    const data = await api('POST', '/shop/buy', { itemType: type, quantity: qty });
+    if (!data || !data.success) { toast(data?.message || '구매 실패'); return; }
+    APP.user.points = data.remainingPoints;
+  } else {
+    // 체험 모드: 로컬 차감
+    APP.user.points -= total;
+    APP.inv[type] = (APP.inv[type] || 0) + qty;
+    document.getElementById('inv-' + (type==='medicine'?'med':type==='clean'?'clean':type)).textContent = APP.inv[type] || '';
+  }
+
+  toast(`✅ ${SHOP_ITEMS.find(i=>i.type===type).name} ${qty}개 구매! (${total}P 차감)`);
+  updateGameHeader();
+  document.getElementById('shop-points').textContent = (APP.user.points||0).toLocaleString();
+}
+
+// 교환 계산
+document.getElementById('ex-pts').addEventListener('input', function() {
+  const pts = parseInt(this.value) || 0;
+  document.getElementById('ex-result').textContent = Math.floor(pts/10) + '개';
+});
+
+async function doExchange() {
+  const pts = parseInt(document.getElementById('ex-pts').value);
+  if (!pts || pts < 10 || pts % 10 !== 0) { toast('10포인트 단위로 입력해주세요.'); return; }
+  if ((APP.user.points||0) < pts) { toast('포인트가 부족합니다.'); return; }
+
+  const food = Math.floor(pts/10);
+  if (!APP.isDemo) {
+    const data = await api('POST', '/shop/exchange', { points: pts });
+    if (!data || !data.success) { toast(data?.message || '교환 실패'); return; }
+    APP.user.points = data.newBalance || (APP.user.points - pts);
+  } else {
+    APP.user.points -= pts;
+    APP.inv.food = (APP.inv.food||0) + food;
+    document.getElementById('inv-food').textContent = APP.inv.food;
+  }
+  toast(`🔄 ${pts}P → 먹이 ${food}개 교환 완료!`);
+  updateGameHeader();
+  document.getElementById('shop-points').textContent = (APP.user.points||0).toLocaleString();
+}
+
+async function doCharge(pkg) {
+  if (APP.isDemo) {
+    const amounts = { small:100, medium:500, large:1000, xl:3000 };
+    APP.user.points += amounts[pkg] || 0;
+    toast(`💳 테스트 충전 완료! +${amounts[pkg]}P (체험 모드)`);
+    updateGameHeader();
+    document.getElementById('shop-points').textContent = (APP.user.points||0).toLocaleString();
+    return;
+  }
+  const data = await api('POST', '/shop/charge', { packageType: pkg });
+  if (!data || !data.success) { toast('충전 실패. 결제 모듈 연동 필요'); return; }
+  APP.user.points = data.newBalance;
+  toast('💳 충전 완료! ' + data.message);
+  updateGameHeader();
+  document.getElementById('shop-points').textContent = APP.user.points.toLocaleString();
+}
+
+// ============================================================
+// 마켓
+// ============================================================
+async function loadMarket() {
+  const grid = document.getElementById('market-grid');
+  if (APP.isDemo) {
+    // 체험용 더미 데이터
+    const dummies = [
+      { name:'해치나의 HatchUp', stage:'adult', version:1, sale_price:450, owner_nickname:'별빛유저', health:82 },
+      { name:'해치비 최고야', stage:'adult', version:2, sale_price:1200, owner_nickname:'달빛요정', health:91 },
+      { name:'해치메 판매중', stage:'adult', version:1, sale_price:350, owner_nickname:'구름이', health:75 },
+    ];
+    grid.innerHTML = dummies.map(c => marketCard(c)).join('') || '<div style="text-align:center;color:var(--text-2);padding:40px 0">판매 중인 캐릭터가 없습니다.</div>';
+    return;
+  }
+  const data = await api('GET', '/game/market');
+  if (!data || !data.success) { grid.innerHTML = '<div style="text-align:center;color:var(--text-2);padding:40px">마켓을 불러오지 못했습니다.</div>'; return; }
+  const items = data.market || [];
+  grid.innerHTML = items.length
+    ? items.map(c => marketCard(c)).join('')
+    : '<div style="text-align:center;color:var(--text-2);padding:40px 0;font-size:14px">판매 중인 캐릭터가 없습니다.</div>';
+}
+
+function marketCard(c) {
+  const icons = { egg:'🥚', baby:'🐣', child:'🐥', teen:'🐤', adult:'🐾' };
+  const vClass = ['','v1','v2','v3','v3','v3'][c.version||1];
+  return `
+  <div class="market-card">
+    <div class="market-char-preview">${icons[c.stage]||'🐾'}</div>
+    <div class="market-info">
+      <div class="market-name">${c.name}<span class="version-badge ${vClass}">v${c.version||1}</span></div>
+      <div class="market-meta">판매자: ${c.owner_nickname} · 건강 ${c.health}%</div>
+    </div>
+    <div style="text-align:right">
+      <div class="market-price">${(c.sale_price||0).toLocaleString()}P</div>
+      <button class="btn btn-sm btn-primary" style="margin-top:6px" onclick="buyChar(${c.id||0},'${c.name}',${c.sale_price||0})">구매</button>
+    </div>
+  </div>`;
+}
+
+async function buyChar(id, name, price) {
+  if (APP.isDemo) { toast('체험 모드에서는 구매할 수 없어요. 회원가입 후 이용하세요!'); return; }
+  if ((APP.user.points||0) < price) { toast(`포인트 부족 (필요: ${price}P)`); return; }
+  if (!confirm(`"${name}"을 ${price}P에 구매하시겠습니까?`)) return;
+  const data = await api('POST', '/game/buy-character', { characterId: id });
+  if (!data || !data.success) { toast(data?.message || '구매 실패'); return; }
+  toast('🎉 캐릭터 구매 완료!');
+  APP.user.points -= price;
+  updateGameHeader();
+  loadMarket();
+}
+
+// ============================================================
+// 판매
+// ============================================================
+function openSell() {
+  document.getElementById('modal-sell').classList.add('show');
+}
+function closeModal(id) {
+  document.getElementById(id).classList.remove('show');
+}
+
+async function doSell() {
+  const price = parseInt(document.getElementById('sell-price').value);
+  if (!price) { toast('판매 가격을 입력하세요.'); return; }
+
+  if (APP.isDemo) { toast('체험 모드에서는 판매할 수 없어요.'); return; }
+  if (!APP.char) { toast('캐릭터가 없습니다.'); return; }
+
+  const data = await api('POST', '/game/sell', { characterId: APP.char.id, price });
+  if (!data || !data.success) { toast(data?.message || '판매 실패'); return; }
+  toast('🏪 판매 등록 완료! ' + data.message);
+  closeModal('modal-sell');
+  loadGameStatus();
+}
+
+// ============================================================
+// 마이페이지
+// ============================================================
+async function loadMyPage() {
+  if (!APP.user) return;
+  document.getElementById('my-nick').textContent  = APP.user.nickname;
+  document.getElementById('my-email').textContent = APP.user.email;
+  document.getElementById('my-pts').textContent   = (APP.user.points||0).toLocaleString() + 'P';
+  document.getElementById('my-ref-code').textContent = APP.user.referralCode || '--------';
+
+  if (!APP.isDemo) {
+    const data = await api('GET', '/user/referral');
+    if (data && data.success) {
+      document.getElementById('my-ref-code').textContent   = data.referralCode;
+      document.getElementById('my-ref-earned').textContent = `총 ${data.referrals.length}명 초대 · ${data.totalEarned}P 획득`;
+    }
+  }
+}
+
+function copyRef() {
+  const code = document.getElementById('my-ref-code').textContent;
+  const link = window.location.origin + window.location.pathname + '?ref=' + code;
+  navigator.clipboard.writeText(link).then(() => toast('🔗 초대 링크 복사됨!')).catch(() => toast(link));
+}
+
+function shareRef() {
+  const code = document.getElementById('my-ref-code').textContent;
+  const link = window.location.origin + window.location.pathname + '?ref=' + code;
+  const text = `HatchUp에서 나랑 같이 키워요! 🥚\n가입하면 둘 다 100P 받아요!\n${link}`;
+  if (navigator.share) {
+    navigator.share({ title: 'HatchUp', text, url: link });
+  } else {
+    navigator.clipboard.writeText(text).then(() => toast('공유 텍스트 복사됨!'));
+  }
+}
+
+function showHistory() {
+  if (APP.isDemo) { toast('체험 모드에서는 사용할 수 없습니다.'); return; }
+  toast('포인트 내역 기능 준비 중...'); // 추후 모달로 구현
+}
+function showMyChars() { toast('내 캐릭터 기능 준비 중...'); }
+function showNotice()  { toast('공지사항 기능 준비 중...'); }
+
+function doLogout() {
+  localStorage.removeItem('tama_token');
+  localStorage.removeItem('tama_user');
+  APP.token = null; APP.user = null; APP.isDemo = false;
+  APP.gameStarted = false;
+  clearInterval(APP.gameInterval);
+  Object.assign(G, LOCAL_CHAR);
+  document.getElementById('nav-bar').style.display = 'none';
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-auth').classList.add('active');
+  document.getElementById('g-overlay').classList.remove('hidden');
+  toast('👋 로그아웃됐습니다.');
+}
+
+// ============================================================
+// 키보드 단축키 (PC용)
+// ============================================================
+document.addEventListener('keydown', e => {
+  if (!APP.gameStarted) { startGame(); return; }
+  const map = { '1':'feed','f':'feed','2':'play','p':'play','3':'clean','c':'clean','s':'sleep','m':'medicine','l':'light' };
+  if (map[e.key]) act(map[e.key]);
+});
+
+// 교환 입력 이벤트 연결
+document.getElementById('ex-pts').addEventListener('input', function() {
+  document.getElementById('ex-result').textContent = Math.floor((parseInt(this.value)||0)/10) + '개';
+});
+
+// 모달 바깥 클릭 닫기
+document.querySelectorAll('.modal-bg').forEach(m => {
+  m.addEventListener('click', e => { if (e.target === m) m.classList.remove('show'); });
+});
+
+// ============================================================
+// 앱 초기화
+// ============================================================
+window.addEventListener('load', () => {
+  // 로딩 화면 제거
+  setTimeout(() => document.getElementById('loading').classList.add('hide'), 800);
+
+  checkRefCode(); // URL 추천인 코드 확인
+
+  // 저장된 로그인 정보가 있으면 자동 로그인
+  if (APP.token && APP.user) {
+    setTimeout(() => {
+      enterApp();
+      toast(`환영합니다, ${APP.user.nickname}님! 🥚`);
+    }, 900);
+  } else {
+    setTimeout(() => {
+      document.getElementById('page-auth').classList.add('active');
+    }, 900);
+  }
+
+  drawPet(); // 초기 캔버스 그리기
+});
+</script>
+</body>
+</html>

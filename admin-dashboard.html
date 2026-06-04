@@ -1,0 +1,1463 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HatchUp 관리자 대시보드</title>
+<link href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   CSS 변수 — 색상 테마
+   ============================================================ */
+:root {
+  --bg:       #080812;
+  --bg-card:  #101020;
+  --bg-card2: #181830;
+  --bg-hover: #1e1e38;
+  --border:   rgba(255,255,255,0.07);
+  --border2:  rgba(255,255,255,0.14);
+  --yellow:   #f5c842;
+  --teal:     #4ecdc4;
+  --pink:     #ff6eb4;
+  --red:      #ff4757;
+  --green:    #2ed573;
+  --blue:     #5352ed;
+  --orange:   #ffa502;
+  --t1: rgba(255,255,255,0.92);
+  --t2: rgba(255,255,255,0.55);
+  --t3: rgba(255,255,255,0.25);
+  --sidebar-w: 220px;
+}
+
+/* ============================================================
+   리셋
+   ============================================================ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; }
+body {
+  font-family: 'Noto Sans KR', sans-serif;
+  background: var(--bg);
+  color: var(--t1);
+  display: flex;
+  overflow: hidden;
+  height: 100vh;
+}
+
+/* ============================================================
+   사이드바
+   ============================================================ */
+#sidebar {
+  width: var(--sidebar-w);
+  background: var(--bg-card);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  z-index: 100;
+  transition: transform 0.3s;
+}
+
+.sidebar-logo {
+  padding: 24px 20px 20px;
+  border-bottom: 1px solid var(--border);
+}
+.sidebar-logo-title {
+  font-family: 'DotGothic16', monospace;
+  font-size: 14px;
+  color: var(--yellow);
+  letter-spacing: 1px;
+}
+.sidebar-logo-sub {
+  font-size: 11px;
+  color: var(--t3);
+  margin-top: 3px;
+}
+
+.sidebar-menu {
+  flex: 1;
+  padding: 12px 0;
+  overflow-y: auto;
+}
+
+.menu-section-label {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--t3);
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  padding: 12px 20px 6px;
+}
+
+.menu-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 20px;
+  font-size: 13px;
+  color: var(--t2);
+  cursor: pointer;
+  border-radius: 0;
+  transition: all 0.15s;
+  border-left: 3px solid transparent;
+  user-select: none;
+}
+.menu-item:hover { background: var(--bg-hover); color: var(--t1); }
+.menu-item.active {
+  background: rgba(245,200,66,0.08);
+  color: var(--yellow);
+  border-left-color: var(--yellow);
+}
+.menu-icon { font-size: 16px; width: 20px; text-align: center; }
+.menu-badge {
+  margin-left: auto;
+  background: var(--red);
+  color: white;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 99px;
+  min-width: 18px;
+  text-align: center;
+}
+
+.sidebar-footer {
+  padding: 16px 20px;
+  border-top: 1px solid var(--border);
+  font-size: 12px;
+  color: var(--t3);
+}
+.sidebar-footer strong { color: var(--yellow); display: block; margin-bottom: 2px; }
+
+/* ============================================================
+   메인 콘텐츠
+   ============================================================ */
+#main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* 상단 헤더 */
+#topbar {
+  height: 60px;
+  background: var(--bg-card);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  padding: 0 24px;
+  gap: 16px;
+  flex-shrink: 0;
+}
+
+.topbar-title {
+  font-size: 16px;
+  font-weight: 700;
+  flex: 1;
+}
+
+.topbar-search {
+  display: flex;
+  align-items: center;
+  background: var(--bg-card2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 6px 12px;
+  gap: 8px;
+  width: 220px;
+}
+.topbar-search input {
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--t1);
+  font-size: 13px;
+  font-family: 'Noto Sans KR', sans-serif;
+  width: 100%;
+}
+.topbar-search input::placeholder { color: var(--t3); }
+
+.topbar-btn {
+  background: rgba(245,200,66,0.12);
+  border: 1px solid rgba(245,200,66,0.25);
+  color: var(--yellow);
+  padding: 7px 14px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s;
+  font-family: 'Noto Sans KR', sans-serif;
+}
+.topbar-btn:hover { background: rgba(245,200,66,0.22); }
+
+#mobile-menu-btn {
+  display: none;
+  background: transparent;
+  border: none;
+  color: var(--t1);
+  font-size: 22px;
+  cursor: pointer;
+}
+
+/* 콘텐츠 영역 */
+#content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px;
+}
+
+/* 섹션 (각 탭 화면) */
+.section { display: none; }
+.section.active { display: block; }
+
+/* ============================================================
+   공통 컴포넌트
+   ============================================================ */
+
+/* 통계 카드 그리드 */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 14px;
+  margin-bottom: 24px;
+}
+
+.stat-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 18px 20px;
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.2s;
+}
+.stat-card:hover { border-color: var(--border2); }
+.stat-card-accent {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+}
+.stat-label { font-size: 12px; color: var(--t2); margin-bottom: 8px; }
+.stat-value { font-size: 28px; font-weight: 700; line-height: 1; }
+.stat-sub   { font-size: 11px; color: var(--t2); margin-top: 6px; }
+.stat-icon  { position: absolute; top: 16px; right: 16px; font-size: 24px; opacity: 0.4; }
+
+/* 섹션 타이틀 */
+.section-title {
+  font-size: 15px;
+  font-weight: 700;
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.section-title-icon { font-size: 18px; }
+
+/* 카드 */
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  overflow: hidden;
+  margin-bottom: 20px;
+}
+.card-header {
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+/* 테이블 */
+.table-wrap { overflow-x: auto; }
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+th {
+  padding: 12px 16px;
+  text-align: left;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--t2);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  white-space: nowrap;
+  border-bottom: 1px solid var(--border);
+}
+td {
+  padding: 12px 16px;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  vertical-align: middle;
+}
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: var(--bg-hover); }
+
+/* 배지 */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 9px;
+  border-radius: 99px;
+}
+.badge-green  { background: rgba(46,213,115,0.15);  color: var(--green);  }
+.badge-red    { background: rgba(255,71,87,0.15);   color: var(--red);    }
+.badge-yellow { background: rgba(245,200,66,0.15);  color: var(--yellow); }
+.badge-blue   { background: rgba(83,82,237,0.15);   color: #8887ff;       }
+.badge-gray   { background: rgba(255,255,255,0.08); color: var(--t2);     }
+.badge-teal   { background: rgba(78,205,196,0.15);  color: var(--teal);   }
+
+/* 버튼 */
+.btn {
+  padding: 7px 14px;
+  border-radius: 8px;
+  border: none;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s;
+  font-family: 'Noto Sans KR', sans-serif;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.btn-xs { padding: 4px 10px; font-size: 11px; border-radius: 6px; }
+.btn-primary { background: var(--yellow); color: #1a1200; }
+.btn-primary:hover { background: #ffd55a; }
+.btn-danger  { background: rgba(255,71,87,0.15); color: var(--red); border: 1px solid rgba(255,71,87,0.3); }
+.btn-danger:hover { background: rgba(255,71,87,0.25); }
+.btn-ghost   { background: rgba(255,255,255,0.06); color: var(--t1); border: 1px solid var(--border); }
+.btn-ghost:hover { background: rgba(255,255,255,0.12); }
+.btn-teal    { background: rgba(78,205,196,0.15); color: var(--teal); border: 1px solid rgba(78,205,196,0.3); }
+
+/* 인풋 */
+.input {
+  background: var(--bg-card2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 9px 12px;
+  color: var(--t1);
+  font-family: 'Noto Sans KR', sans-serif;
+  font-size: 13px;
+  outline: none;
+  transition: border-color 0.2s;
+  width: 100%;
+}
+.input:focus { border-color: var(--yellow); }
+.input::placeholder { color: var(--t3); }
+.input-label { font-size: 11px; color: var(--t2); margin-bottom: 5px; font-weight: 700; }
+
+/* 폼 그리드 */
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.form-group { display: flex; flex-direction: column; gap: 5px; }
+
+/* 토스트 */
+#toast {
+  position: fixed;
+  top: 16px; right: 16px;
+  background: var(--green);
+  color: #001a0a;
+  font-size: 13px; font-weight: 700;
+  padding: 10px 18px;
+  border-radius: 10px;
+  z-index: 9999;
+  transform: translateY(-60px);
+  opacity: 0;
+  transition: all 0.3s cubic-bezier(0.34,1.56,0.64,1);
+  max-width: 300px;
+}
+#toast.show { transform: translateY(0); opacity: 1; }
+#toast.err  { background: var(--red); color: white; }
+
+/* 모달 */
+.modal-bg {
+  position: fixed; inset: 0; z-index: 500;
+  background: rgba(0,0,0,0.7);
+  display: flex; align-items: center; justify-content: center;
+  padding: 20px;
+  opacity: 0; pointer-events: none; transition: opacity 0.2s;
+}
+.modal-bg.show { opacity: 1; pointer-events: all; }
+.modal-box {
+  background: var(--bg-card);
+  border: 1px solid var(--border2);
+  border-radius: 18px;
+  padding: 28px;
+  width: 100%; max-width: 440px;
+  transform: scale(0.94);
+  transition: transform 0.25s cubic-bezier(0.34,1.2,0.64,1);
+}
+.modal-bg.show .modal-box { transform: scale(1); }
+.modal-title { font-size: 17px; font-weight: 700; margin-bottom: 18px; }
+
+/* 차트 바 */
+.chart-row { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+.chart-label { font-size: 12px; color: var(--t2); width: 80px; flex-shrink: 0; }
+.chart-bar-bg { flex: 1; height: 8px; background: rgba(255,255,255,0.07); border-radius: 4px; overflow: hidden; }
+.chart-bar-fill { height: 100%; border-radius: 4px; transition: width 0.8s cubic-bezier(0.34,1,0.64,1); }
+.chart-val { font-size: 12px; font-weight: 700; min-width: 40px; text-align: right; }
+
+/* 실시간 로그 */
+.log-item {
+  display: flex; gap: 12px; padding: 9px 16px;
+  font-size: 12px; border-bottom: 1px solid rgba(255,255,255,0.04);
+  font-family: monospace;
+}
+.log-item:last-child { border-bottom: none; }
+.log-time { color: var(--t3); flex-shrink: 0; }
+.log-level { flex-shrink: 0; width: 44px; font-weight: 700; }
+.log-level.info  { color: var(--teal); }
+.log-level.warn  { color: var(--orange); }
+.log-level.error { color: var(--red); }
+.log-msg { flex: 1; color: var(--t2); word-break: break-all; }
+
+/* 알림 패널 */
+.alert-item {
+  display: flex; align-items: flex-start; gap: 12px;
+  padding: 12px 16px; border-bottom: 1px solid rgba(255,255,255,0.04);
+}
+.alert-item:last-child { border-bottom: none; }
+.alert-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; margin-top: 5px; }
+
+/* 반응형 모바일 */
+@media (max-width: 768px) {
+  :root { --sidebar-w: 260px; }
+  #sidebar {
+    position: fixed; top: 0; left: 0; bottom: 0;
+    transform: translateX(-100%);
+    z-index: 200;
+  }
+  #sidebar.open { transform: translateX(0); }
+  #mobile-menu-btn { display: block; }
+  #mobile-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.5); z-index: 150;
+  }
+  #mobile-overlay.show { display: block; }
+  .form-grid { grid-template-columns: 1fr; }
+  .stats-grid { grid-template-columns: 1fr 1fr; }
+}
+</style>
+</head>
+<body>
+
+<div id="toast"></div>
+<div id="mobile-overlay" onclick="closeSidebar()"></div>
+
+<!-- ============================================================
+     사이드바 메뉴
+     ============================================================ -->
+<div id="sidebar">
+  <div class="sidebar-logo">
+    <div class="sidebar-logo-title">🥚 HatchUp 관리자</div>
+    <div class="sidebar-logo-sub">Admin Dashboard v1.0</div>
+  </div>
+
+  <nav class="sidebar-menu">
+    <div class="menu-section-label">메인</div>
+    <div class="menu-item active" onclick="goSection('dashboard')">
+      <span class="menu-icon">📊</span> 대시보드
+    </div>
+
+    <div class="menu-section-label">회원 관리</div>
+    <div class="menu-item" onclick="goSection('users')">
+      <span class="menu-icon">👥</span> 회원 목록
+    </div>
+    <div class="menu-item" onclick="goSection('points')">
+      <span class="menu-icon">⭐</span> 포인트 지급
+    </div>
+
+    <div class="menu-section-label">게임 관리</div>
+    <div class="menu-item" onclick="goSection('characters')">
+      <span class="menu-icon">🐾</span> 캐릭터 현황
+    </div>
+    <div class="menu-item" onclick="goSection('market')">
+      <span class="menu-icon">🏪</span> 마켓 관리
+    </div>
+
+    <div class="menu-section-label">운영 관리</div>
+    <div class="menu-item" onclick="goSection('shop')">
+      <span class="menu-icon">💰</span> 상점 가격 설정
+    </div>
+    <div class="menu-item" onclick="goSection('logs')">
+      <span class="menu-icon">📋</span> 오류 로그
+      <span class="menu-badge" id="err-badge">0</span>
+    </div>
+    <div class="menu-item" onclick="goSection('notice')">
+      <span class="menu-icon">📢</span> 공지사항
+    </div>
+  </nav>
+
+  <div class="sidebar-footer">
+    <strong id="admin-name">관리자</strong>
+    <span id="server-status" style="color:var(--green)">● 서버 정상</span>
+  </div>
+</div>
+
+<!-- ============================================================
+     메인 영역
+     ============================================================ -->
+<div id="main">
+
+  <!-- 상단 바 -->
+  <div id="topbar">
+    <button id="mobile-menu-btn" onclick="openSidebar()">☰</button>
+    <div class="topbar-title" id="topbar-title">📊 대시보드</div>
+    <div class="topbar-search">
+      <span style="color:var(--t3)">🔍</span>
+      <input type="text" placeholder="회원 검색..." id="search-input" oninput="liveSearch(this.value)">
+    </div>
+    <button class="topbar-btn" onclick="refreshAll()">↻ 새로고침</button>
+    <button class="topbar-btn" style="background:rgba(255,71,87,0.12);border-color:rgba(255,71,87,0.3);color:var(--red)" onclick="doLogout()">로그아웃</button>
+  </div>
+
+  <!-- 콘텐츠 -->
+  <div id="content">
+
+    <!-- ======================================================
+         로그인 화면
+         ====================================================== -->
+    <div id="section-login" class="section active"
+         style="display:flex;align-items:center;justify-content:center;min-height:80vh">
+      <div style="width:100%;max-width:360px">
+        <div style="text-align:center;margin-bottom:32px">
+          <div style="font-size:48px;margin-bottom:8px">🛡️</div>
+          <div style="font-family:'DotGothic16',monospace;font-size:20px;color:var(--yellow)">관리자 로그인</div>
+          <div style="font-size:12px;color:var(--t3);margin-top:4px">HatchUp 운영자 전용</div>
+        </div>
+        <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:16px;padding:28px;display:flex;flex-direction:column;gap:16px">
+          <div class="form-group">
+            <div class="input-label">관리자 이메일</div>
+            <input class="input" id="a-email" type="email" placeholder="admin@example.com">
+          </div>
+          <div class="form-group">
+            <div class="input-label">비밀번호</div>
+            <input class="input" id="a-pw" type="password" placeholder="비밀번호 입력" onkeydown="if(event.key==='Enter')adminLogin()">
+          </div>
+          <button class="btn btn-primary" style="width:100%;padding:12px;font-size:14px" onclick="adminLogin()">
+            🔑 로그인
+          </button>
+          <div style="text-align:center;font-size:11px;color:var(--t3)">
+            서버 없이 테스트: 아무 값이나 입력 후 로그인
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ======================================================
+         대시보드
+         ====================================================== -->
+    <div id="section-dashboard" class="section">
+
+      <!-- 통계 카드 -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-card-accent" style="background:var(--yellow)"></div>
+          <div class="stat-icon">👥</div>
+          <div class="stat-label">전체 회원</div>
+          <div class="stat-value" id="s-total-users">-</div>
+          <div class="stat-sub" id="s-today-users">오늘 +0명</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-accent" style="background:var(--teal)"></div>
+          <div class="stat-icon">🐾</div>
+          <div class="stat-label">살아있는 캐릭터</div>
+          <div class="stat-value" id="s-active-chars">-</div>
+          <div class="stat-sub" id="s-for-sale">판매 중 0개</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-accent" style="background:var(--green)"></div>
+          <div class="stat-icon">💰</div>
+          <div class="stat-label">총 충전 포인트</div>
+          <div class="stat-value" id="s-total-pts">-</div>
+          <div class="stat-sub" id="s-today-pts">오늘 +0P</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-accent" style="background:var(--red)"></div>
+          <div class="stat-icon">⚠️</div>
+          <div class="stat-label">24h 오류 수</div>
+          <div class="stat-value" id="s-errors">-</div>
+          <div class="stat-sub">최근 24시간</div>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+
+        <!-- 최근 가입자 -->
+        <div class="card">
+          <div class="card-header">
+            <span>🆕 최근 가입자</span>
+            <button class="btn btn-xs btn-ghost" onclick="goSection('users')">전체 보기 →</button>
+          </div>
+          <div class="table-wrap">
+            <table id="recent-users-table">
+              <thead><tr><th>닉네임</th><th>가입일</th><th>포인트</th></tr></thead>
+              <tbody id="recent-users-body">
+                <tr><td colspan="3" style="text-align:center;color:var(--t3);padding:20px">로딩 중...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- 포인트 현황 차트 -->
+        <div class="card">
+          <div class="card-header"><span>📈 아이템 판매 현황</span></div>
+          <div style="padding:16px" id="sales-chart">
+            <div class="chart-row">
+              <div class="chart-label">먹이 🍖</div>
+              <div class="chart-bar-bg"><div class="chart-bar-fill" id="bar-food" style="width:0%;background:var(--yellow)"></div></div>
+              <div class="chart-val" id="val-food">-</div>
+            </div>
+            <div class="chart-row">
+              <div class="chart-label">장난감 🎾</div>
+              <div class="chart-bar-bg"><div class="chart-bar-fill" id="bar-toy" style="width:0%;background:var(--pink)"></div></div>
+              <div class="chart-val" id="val-toy">-</div>
+            </div>
+            <div class="chart-row">
+              <div class="chart-label">약 💊</div>
+              <div class="chart-bar-bg"><div class="chart-bar-fill" id="bar-med" style="width:0%;background:var(--teal)"></div></div>
+              <div class="chart-val" id="val-med">-</div>
+            </div>
+            <div class="chart-row">
+              <div class="chart-label">청소도구 🪣</div>
+              <div class="chart-bar-bg"><div class="chart-bar-fill" id="bar-clean" style="width:0%;background:var(--green)"></div></div>
+              <div class="chart-val" id="val-clean">-</div>
+            </div>
+            <div class="chart-row">
+              <div class="chart-label">수면제 💤</div>
+              <div class="chart-bar-bg"><div class="chart-bar-fill" id="bar-sleep" style="width:0%;background:var(--blue)"></div></div>
+              <div class="chart-val" id="val-sleep">-</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 시스템 알림 -->
+      <div class="card" style="margin-top:4px">
+        <div class="card-header"><span>🔔 시스템 알림</span></div>
+        <div id="alert-list">
+          <div class="alert-item">
+            <div class="alert-dot" style="background:var(--green)"></div>
+            <div><div style="font-size:13px;font-weight:500">서버 정상 운영 중</div><div style="font-size:11px;color:var(--t3);margin-top:2px">방금 전</div></div>
+          </div>
+          <div class="alert-item">
+            <div class="alert-dot" style="background:var(--yellow)"></div>
+            <div><div style="font-size:13px;font-weight:500">Railway Volume 백업 설정을 확인하세요</div><div style="font-size:11px;color:var(--t3);margin-top:2px">배포 가이드 8단계 참고</div></div>
+          </div>
+          <div class="alert-item">
+            <div class="alert-dot" style="background:var(--blue)"></div>
+            <div><div style="font-size:13px;font-weight:500">결제 모듈 미연동 상태</div><div style="font-size:11px;color:var(--t3);margin-top:2px">포트원(아임포트) 연동 후 실결제 가능</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ======================================================
+         회원 관리
+         ====================================================== -->
+    <div id="section-users" class="section">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+        <div class="section-title"><span class="section-title-icon">👥</span> 회원 목록</div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <input class="input" style="width:200px" type="text" placeholder="이메일/닉네임 검색" id="user-search" oninput="filterUsers(this.value)">
+          <button class="btn btn-primary btn-xs" onclick="loadUsers()">검색</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>ID</th><th>닉네임</th><th>이메일</th>
+                <th>포인트</th><th>상태</th><th>가입일</th><th>관리</th>
+              </tr>
+            </thead>
+            <tbody id="users-body">
+              <tr><td colspan="7" style="text-align:center;color:var(--t3);padding:30px">로딩 중...</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div style="padding:14px 16px;border-top:1px solid var(--border);display:flex;gap:8px;align-items:center;font-size:12px;color:var(--t2)" id="users-pagination">
+        </div>
+      </div>
+    </div>
+
+    <!-- ======================================================
+         포인트 지급
+         ====================================================== -->
+    <div id="section-points" class="section">
+      <div class="section-title"><span class="section-title-icon">⭐</span> 포인트 수동 지급/차감</div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+        <div class="card">
+          <div class="card-header"><span>포인트 지급/차감</span></div>
+          <div style="padding:20px;display:flex;flex-direction:column;gap:14px">
+            <div class="form-group">
+              <div class="input-label">회원 ID 또는 이메일</div>
+              <input class="input" id="pt-user" placeholder="예: 1 또는 user@email.com">
+            </div>
+            <div class="form-group">
+              <div class="input-label">포인트 (차감은 -숫자)</div>
+              <input class="input" id="pt-amount" type="number" placeholder="예: 100 또는 -50">
+            </div>
+            <div class="form-group">
+              <div class="input-label">사유 (회원에게 표시됨)</div>
+              <input class="input" id="pt-reason" placeholder="예: 이벤트 보상, 오류 보상">
+            </div>
+            <button class="btn btn-primary" style="width:100%" onclick="givePoints()">⭐ 포인트 지급</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header"><span>📜 최근 포인트 내역</span></div>
+          <div id="pt-history" style="max-height:300px;overflow-y:auto">
+            <div style="padding:20px;text-align:center;color:var(--t3);font-size:13px">내역 없음</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 일괄 지급 -->
+      <div class="card" style="margin-top:0">
+        <div class="card-header"><span>🎁 전체 회원 일괄 지급</span></div>
+        <div style="padding:20px;display:flex;gap:14px;align-items:flex-end">
+          <div class="form-group" style="flex:1">
+            <div class="input-label">지급 포인트</div>
+            <input class="input" id="bulk-pts" type="number" placeholder="예: 50">
+          </div>
+          <div class="form-group" style="flex:2">
+            <div class="input-label">사유</div>
+            <input class="input" id="bulk-reason" placeholder="예: 점검 보상, 기념일 이벤트">
+          </div>
+          <button class="btn btn-teal" onclick="bulkGivePoints()">전체 지급</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ======================================================
+         캐릭터 현황
+         ====================================================== -->
+    <div id="section-characters" class="section">
+      <div class="section-title"><span class="section-title-icon">🐾</span> 캐릭터 현황</div>
+
+      <div class="stats-grid" style="grid-template-columns:repeat(5,1fr);margin-bottom:20px">
+        <div class="stat-card" style="text-align:center;padding:14px">
+          <div style="font-size:24px">🥚</div>
+          <div class="stat-value" id="cnt-egg" style="font-size:20px">-</div>
+          <div class="stat-label">알</div>
+        </div>
+        <div class="stat-card" style="text-align:center;padding:14px">
+          <div style="font-size:24px">🐣</div>
+          <div class="stat-value" id="cnt-baby" style="font-size:20px">-</div>
+          <div class="stat-label">아기</div>
+        </div>
+        <div class="stat-card" style="text-align:center;padding:14px">
+          <div style="font-size:24px">🐥</div>
+          <div class="stat-value" id="cnt-child" style="font-size:20px">-</div>
+          <div class="stat-label">어린이</div>
+        </div>
+        <div class="stat-card" style="text-align:center;padding:14px">
+          <div style="font-size:24px">🐤</div>
+          <div class="stat-value" id="cnt-teen" style="font-size:20px">-</div>
+          <div class="stat-label">청소년</div>
+        </div>
+        <div class="stat-card" style="text-align:center;padding:14px">
+          <div style="font-size:24px">🐾</div>
+          <div class="stat-value" id="cnt-adult" style="font-size:20px">-</div>
+          <div class="stat-label">어른</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <span>전체 캐릭터 목록</span>
+          <div style="display:flex;gap:6px">
+            <select class="input" style="width:auto;padding:5px 10px;font-size:12px" id="char-filter" onchange="loadCharacters()">
+              <option value="">전체</option>
+              <option value="egg">알</option>
+              <option value="baby">아기</option>
+              <option value="adult">어른</option>
+              <option value="dead">사망</option>
+            </select>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>ID</th><th>이름</th><th>주인</th><th>단계</th><th>버전</th><th>건강</th><th>나이</th><th>상태</th></tr>
+            </thead>
+            <tbody id="chars-body">
+              <tr><td colspan="8" style="text-align:center;color:var(--t3);padding:30px">로딩 중...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ======================================================
+         마켓 관리
+         ====================================================== -->
+    <div id="section-market" class="section">
+      <div class="section-title"><span class="section-title-icon">🏪</span> 마켓 관리</div>
+      <div class="card">
+        <div class="card-header"><span>판매 중인 캐릭터</span></div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>캐릭터</th><th>판매자</th><th>버전</th><th>판매가</th><th>등록일</th><th>관리</th></tr>
+            </thead>
+            <tbody id="market-body">
+              <tr><td colspan="6" style="text-align:center;color:var(--t3);padding:30px">로딩 중...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ======================================================
+         상점 가격 설정
+         ====================================================== -->
+    <div id="section-shop" class="section">
+      <div class="section-title"><span class="section-title-icon">💰</span> 상점 가격 설정</div>
+      <div style="font-size:13px;color:var(--t2);margin-bottom:20px">
+        버전 1 기준 가격입니다. 버전 2는 ×2배, 버전 3은 ×3배가 자동 적용됩니다.
+      </div>
+
+      <div class="card">
+        <div class="card-header"><span>아이템 가격 (v1 기준)</span></div>
+        <div style="padding:20px">
+          <div id="shop-items-form" style="display:flex;flex-direction:column;gap:12px">
+            <!-- JS로 채워짐 -->
+          </div>
+          <button class="btn btn-primary" style="margin-top:16px" onclick="saveShopPrices()">💾 저장</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><span>캐릭터 판매가 범위</span></div>
+        <div style="padding:20px">
+          <table style="font-size:13px">
+            <thead><tr><th>버전</th><th>최소가</th><th>최대가</th><th>추천가</th></tr></thead>
+            <tbody>
+              <tr><td><span class="badge badge-teal">v1</span></td><td>300P</td><td>800P</td><td>500P</td></tr>
+              <tr><td><span class="badge badge-blue">v2</span></td><td>800P</td><td>2,000P</td><td>1,200P</td></tr>
+              <tr><td><span class="badge badge-yellow">v3</span></td><td>2,000P</td><td>5,000P</td><td>3,000P</td></tr>
+              <tr><td><span class="badge badge-yellow">v4</span></td><td>5,000P</td><td>10,000P</td><td>7,000P</td></tr>
+              <tr><td><span class="badge badge-yellow">v5</span></td><td>10,000P</td><td>20,000P</td><td>15,000P</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ======================================================
+         오류 로그
+         ====================================================== -->
+    <div id="section-logs" class="section">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+        <div class="section-title"><span class="section-title-icon">📋</span> 오류 로그</div>
+        <div style="display:flex;gap:8px">
+          <select class="input" style="width:auto;padding:6px 10px;font-size:12px" id="log-filter" onchange="loadLogs()">
+            <option value="">전체</option>
+            <option value="error">오류만</option>
+            <option value="warn">경고만</option>
+          </select>
+          <button class="btn btn-xs btn-ghost" onclick="loadLogs()">새로고침</button>
+        </div>
+      </div>
+      <div class="card">
+        <div id="log-list">
+          <div style="padding:20px;text-align:center;color:var(--t3)">로딩 중...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ======================================================
+         공지사항
+         ====================================================== -->
+    <div id="section-notice" class="section">
+      <div class="section-title"><span class="section-title-icon">📢</span> 공지사항 작성</div>
+      <div class="card">
+        <div style="padding:20px;display:flex;flex-direction:column;gap:14px">
+          <div class="form-group">
+            <div class="input-label">제목</div>
+            <input class="input" id="notice-title" placeholder="공지 제목을 입력하세요">
+          </div>
+          <div class="form-group">
+            <div class="input-label">내용</div>
+            <textarea class="input" id="notice-body" rows="5" placeholder="공지 내용을 입력하세요" style="resize:vertical"></textarea>
+          </div>
+          <div style="display:flex;gap:8px">
+            <select class="input" style="width:auto;padding:8px 12px" id="notice-type">
+              <option value="info">일반 공지</option>
+              <option value="event">이벤트</option>
+              <option value="maintenance">점검 안내</option>
+              <option value="update">업데이트</option>
+            </select>
+            <button class="btn btn-primary" onclick="postNotice()">📢 공지 발행</button>
+            <button class="btn btn-ghost" onclick="previewNotice()">미리보기</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-title" style="margin-top:4px"><span class="section-title-icon">📋</span> 발행된 공지</div>
+      <div class="card">
+        <div id="notice-list">
+          <div style="padding:20px;text-align:center;color:var(--t3);font-size:13px">발행된 공지가 없습니다.</div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /main -->
+
+<!-- 포인트 지급 확인 모달 -->
+<div class="modal-bg" id="modal-confirm">
+  <div class="modal-box">
+    <div class="modal-title" id="modal-title">확인</div>
+    <div id="modal-body" style="font-size:14px;color:var(--t2);margin-bottom:20px"></div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-ghost" style="flex:1" onclick="closeModal()">취소</button>
+      <button class="btn btn-primary" style="flex:1" id="modal-ok-btn">확인</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// ⚙️ 설정
+// 서버 주소를 실제 배포 주소로 변경하세요
+// ============================================================
+const API = window.location.hostname === 'localhost'
+  ? 'http://localhost:3000/api'
+  : '/api';
+
+// ============================================================
+// 앱 상태
+// ============================================================
+const ADMIN = {
+  token: localStorage.getItem('admin_token') || null,
+  user:  JSON.parse(localStorage.getItem('admin_user') || 'null'),
+  isDemo: false,
+  shopItems: [],
+  notices: JSON.parse(localStorage.getItem('admin_notices') || '[]'),
+};
+
+// 로컬 더미 데이터 (서버 없을 때)
+const DEMO = {
+  stats: { totalUsers:142, todayUsers:8, activeChars:89, forSaleChars:12, totalPoints:87500, todayPoints:3200, recentErrors:2 },
+  users: [
+    { id:1, nickname:'별빛유저', email:'star@test.com', points:1250, is_active:1, is_admin:0, created_at:'2025-06-01' },
+    { id:2, nickname:'달빛요정', email:'moon@test.com', points:830, is_active:1, is_admin:0, created_at:'2025-06-02' },
+    { id:3, nickname:'구름이', email:'cloud@test.com', points:220, is_active:0, is_admin:0, created_at:'2025-06-03' },
+    { id:4, nickname:'Admin', email:'admin@test.com', points:9999, is_active:1, is_admin:1, created_at:'2025-05-30' },
+    { id:5, nickname:'하늘빛', email:'sky@test.com', points:450, is_active:1, is_admin:0, created_at:'2025-06-04' },
+  ],
+  chars: [
+    { id:1, name:'해치루', owner_nickname:'별빛유저', stage:'adult', version:1, health:85, age:30, is_dead:0, is_for_sale:1 },
+    { id:2, name:'해치비', owner_nickname:'달빛요정', stage:'child', version:1, health:72, age:10, is_dead:0, is_for_sale:0 },
+    { id:3, name:'해치나', owner_nickname:'구름이',  stage:'teen',  version:2, health:91, age:21, is_dead:0, is_for_sale:0 },
+    { id:4, name:'해치메', owner_nickname:'하늘빛',  stage:'baby',  version:1, health:55, age:3,  is_dead:0, is_for_sale:0 },
+    { id:5, name:'낡은알', owner_nickname:'구름이',   stage:'dead',  version:1, health:0,  age:18, is_dead:1, is_for_sale:0 },
+  ],
+  logs: [
+    { level:'info',  message:'서버 시작 완료', created_at:'2025-06-02 10:00:01' },
+    { level:'info',  message:'DB 연결 성공',   created_at:'2025-06-02 10:00:02' },
+    { level:'warn',  message:'로그인 시도 과다: 192.168.1.1', created_at:'2025-06-02 10:15:30' },
+    { level:'error', message:'회원가입 실패: 이메일 중복',     created_at:'2025-06-02 11:20:44' },
+    { level:'info',  message:'캐릭터 판매 등록 #12, 450P',    created_at:'2025-06-02 12:30:00' },
+    { level:'error', message:'결제 검증 실패: paymentKey=xxx', created_at:'2025-06-02 13:05:18' },
+  ],
+  shopItems: [
+    { item_type:'food',     name:'먹이',    price:10, is_active:1 },
+    { item_type:'medicine', name:'약',      price:20, is_active:1 },
+    { item_type:'clean',    name:'청소도구', price:5,  is_active:1 },
+    { item_type:'toy',      name:'장난감',  price:25, is_active:1 },
+    { item_type:'sleep',    name:'수면제',  price:15, is_active:1 },
+    { item_type:'light',    name:'야간등',  price:5,  is_active:1 },
+  ]
+};
+
+// ============================================================
+// API 헬퍼
+// ============================================================
+async function api(method, path, body) {
+  if (ADMIN.isDemo) return null; // 데모 모드는 API 스킵
+  try {
+    const opts = { method, headers: { 'Content-Type':'application/json', 'Authorization':'Bearer '+ADMIN.token } };
+    if (body) opts.body = JSON.stringify(body);
+    const res  = await fetch(API + path, opts);
+    return await res.json();
+  } catch(e) {
+    return null;
+  }
+}
+
+// ============================================================
+// 토스트
+// ============================================================
+let toastTimer;
+function toast(msg, isErr=false) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className   = 'show' + (isErr?' err':'');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.className = '', 2500);
+}
+
+// ============================================================
+// 로그인
+// ============================================================
+async function adminLogin() {
+  const email = document.getElementById('a-email').value.trim();
+  const pw    = document.getElementById('a-pw').value;
+  if (!email) { toast('이메일을 입력하세요', true); return; }
+
+  const data = await (async()=>{
+    try {
+      const res = await fetch(API+'/auth/login', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ email, password: pw })
+      });
+      return await res.json();
+    } catch(e) { return null; }
+  })();
+
+  if (!data || !data.success) {
+    // 서버 없으면 데모 모드
+    ADMIN.isDemo = true;
+    ADMIN.user = { nickname:'관리자(데모)', email };
+    enterAdmin();
+    toast('⚠️ 서버 없음 - 데모 모드로 실행');
+    return;
+  }
+
+  if (!data.user?.isAdmin) { toast('관리자 권한이 없습니다', true); return; }
+
+  ADMIN.token = data.token;
+  ADMIN.user  = data.user;
+  localStorage.setItem('admin_token', data.token);
+  localStorage.setItem('admin_user',  JSON.stringify(data.user));
+  enterAdmin();
+}
+
+function enterAdmin() {
+  document.getElementById('section-login').classList.remove('active');
+  document.getElementById('admin-name').textContent = ADMIN.user?.nickname || '관리자';
+  goSection('dashboard');
+  loadDashboard();
+}
+
+function doLogout() {
+  localStorage.removeItem('admin_token');
+  localStorage.removeItem('admin_user');
+  ADMIN.token = null; ADMIN.user = null;
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.getElementById('section-login').classList.add('active');
+  toast('로그아웃됐습니다');
+}
+
+// ============================================================
+// 섹션 이동
+// ============================================================
+function goSection(name) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.getElementById('section-'+name).classList.add('active');
+  document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
+  document.querySelectorAll('.menu-item').forEach(m => {
+    if (m.getAttribute('onclick')?.includes(name)) m.classList.add('active');
+  });
+  const titles = { dashboard:'📊 대시보드', users:'👥 회원 목록', points:'⭐ 포인트 지급', characters:'🐾 캐릭터 현황', market:'🏪 마켓 관리', shop:'💰 상점 가격 설정', logs:'📋 오류 로그', notice:'📢 공지사항' };
+  document.getElementById('topbar-title').textContent = titles[name] || '';
+  closeSidebar();
+
+  // 각 섹션별 데이터 로드
+  if (name==='users')      loadUsers();
+  if (name==='characters') loadCharacters();
+  if (name==='market')     loadMarket();
+  if (name==='shop')       loadShopItems();
+  if (name==='logs')       loadLogs();
+  if (name==='notice')     renderNotices();
+}
+
+// ============================================================
+// 대시보드 로드
+// ============================================================
+async function loadDashboard() {
+  const data = ADMIN.isDemo ? { success:true, stats:DEMO.stats } : await api('GET','/admin/stats');
+  if (!data?.success) { toast('통계 로드 실패', true); return; }
+  const s = data.stats;
+
+  document.getElementById('s-total-users').textContent  = s.totalUsers?.toLocaleString() || 0;
+  document.getElementById('s-today-users').textContent  = `오늘 +${s.todayUsers||0}명`;
+  document.getElementById('s-active-chars').textContent = s.activeChars?.toLocaleString() || 0;
+  document.getElementById('s-for-sale').textContent     = `판매 중 ${s.forSaleChars||0}개`;
+  document.getElementById('s-total-pts').textContent    = (s.totalPoints||0).toLocaleString()+'P';
+  document.getElementById('s-today-pts').textContent    = `오늘 +${(s.todayPoints||0).toLocaleString()}P`;
+  document.getElementById('s-errors').textContent       = s.recentErrors || 0;
+  document.getElementById('err-badge').textContent      = s.recentErrors || 0;
+
+  // 최근 가입자
+  const users = ADMIN.isDemo ? DEMO.users.slice(-3).reverse() : (await api('GET','/admin/users?page=1'))?.users?.slice(0,5) || [];
+  document.getElementById('recent-users-body').innerHTML = users.map(u=>`
+    <tr>
+      <td><strong>${u.nickname}</strong></td>
+      <td style="color:var(--t3)">${(u.created_at||'').substring(0,10)}</td>
+      <td><span style="color:var(--yellow)">${(u.points||0).toLocaleString()}P</span></td>
+    </tr>`).join('');
+
+  // 판매 현황 차트 (더미 데이터)
+  const sales = { food:320, toy:210, medicine:180, clean:150, sleep:95 };
+  const max   = Math.max(...Object.values(sales));
+  Object.entries(sales).forEach(([k,v])=>{
+    const el = document.getElementById('bar-'+k);
+    const vl = document.getElementById('val-'+k);
+    if (el) setTimeout(()=>{ el.style.width=(v/max*100)+'%'; },100);
+    if (vl) vl.textContent = v+'개';
+  });
+}
+
+// ============================================================
+// 회원 목록
+// ============================================================
+let allUsers = [];
+async function loadUsers() {
+  const search = document.getElementById('user-search')?.value || '';
+  const data   = ADMIN.isDemo ? { success:true, users:DEMO.users } : await api('GET',`/admin/users?search=${encodeURIComponent(search)}`);
+  allUsers = data?.users || [];
+  renderUsers(allUsers);
+}
+
+function renderUsers(users) {
+  const body = document.getElementById('users-body');
+  if (!users.length) { body.innerHTML='<tr><td colspan="7" style="text-align:center;color:var(--t3);padding:30px">회원이 없습니다</td></tr>'; return; }
+  body.innerHTML = users.map(u => `
+    <tr>
+      <td style="color:var(--t3)">#${u.id}</td>
+      <td><strong>${u.nickname}</strong>${u.is_admin?'<span class="badge badge-yellow" style="margin-left:6px">관리자</span>':''}</td>
+      <td style="color:var(--t2)">${u.email}</td>
+      <td><span style="color:var(--yellow);font-weight:700">${(u.points||0).toLocaleString()}P</span></td>
+      <td>${u.is_active ? '<span class="badge badge-green">활성</span>' : '<span class="badge badge-red">비활성</span>'}</td>
+      <td style="color:var(--t3)">${(u.created_at||'').substring(0,10)}</td>
+      <td>
+        <div style="display:flex;gap:4px">
+          <button class="btn btn-xs btn-ghost" onclick="quickPoint(${u.id},'${u.nickname}')">⭐ 지급</button>
+          <button class="btn btn-xs ${u.is_active?'btn-danger':'btn-teal'}" onclick="toggleUser(${u.id},'${u.nickname}',${u.is_active})">
+            ${u.is_active?'정지':'복원'}
+          </button>
+        </div>
+      </td>
+    </tr>`).join('');
+}
+
+function filterUsers(query) {
+  if (!query) { renderUsers(allUsers); return; }
+  const q = query.toLowerCase();
+  renderUsers(allUsers.filter(u => u.nickname?.toLowerCase().includes(q) || u.email?.toLowerCase().includes(q)));
+}
+
+function liveSearch(val) {
+  if (document.getElementById('section-users').classList.contains('active')) filterUsers(val);
+}
+
+// ============================================================
+// 회원 관리 액션
+// ============================================================
+function quickPoint(userId, nickname) {
+  document.getElementById('pt-user').value = userId;
+  goSection('points');
+  toast(`${nickname}님 선택됨. 포인트를 입력하세요.`);
+}
+
+async function toggleUser(id, nickname, isActive) {
+  showConfirm(
+    `회원 ${isActive?'정지':'복원'}`,
+    `"${nickname}"님을 ${isActive?'정지':'복원'}하시겠습니까?`,
+    async () => {
+      if (!ADMIN.isDemo) {
+        const data = await api('PUT', `/admin/users/${id}/toggle`);
+        if (!data?.success) { toast('변경 실패', true); return; }
+      }
+      toast(`✅ ${nickname}님 ${isActive?'정지':'복원'} 완료`);
+      // 데모 모드: 로컬 상태 변경
+      const u = DEMO.users.find(u=>u.id===id);
+      if (u) u.is_active = isActive ? 0 : 1;
+      loadUsers();
+    }
+  );
+}
+
+// ============================================================
+// 포인트 지급
+// ============================================================
+const ptHistory = [];
+async function givePoints() {
+  const userId = document.getElementById('pt-user').value.trim();
+  const amount = parseInt(document.getElementById('pt-amount').value);
+  const reason = document.getElementById('pt-reason').value.trim();
+
+  if (!userId || !amount || !reason) { toast('모든 항목을 입력하세요', true); return; }
+
+  const label = amount > 0 ? `+${amount}P 지급` : `${amount}P 차감`;
+  showConfirm('포인트 지급', `회원 "${userId}"에게 ${label}하시겠습니까?\n사유: ${reason}`, async () => {
+    if (!ADMIN.isDemo) {
+      const data = await api('POST', '/admin/points', { userId, amount, reason });
+      if (!data?.success) { toast('지급 실패: '+data?.message, true); return; }
+    }
+    const now = new Date().toLocaleTimeString();
+    ptHistory.unshift({ userId, amount, reason, time: now });
+    renderPtHistory();
+    document.getElementById('pt-user').value = '';
+    document.getElementById('pt-amount').value = '';
+    document.getElementById('pt-reason').value = '';
+    toast(`✅ ${label} 완료!`);
+  });
+}
+
+function renderPtHistory() {
+  const el = document.getElementById('pt-history');
+  el.innerHTML = ptHistory.length ? ptHistory.map(h=>`
+    <div style="padding:10px 16px;border-bottom:1px solid var(--border);font-size:12px">
+      <div style="display:flex;justify-content:space-between">
+        <span style="font-weight:700">회원 #${h.userId}</span>
+        <span style="color:${h.amount>0?'var(--green)':'var(--red)'}">
+          ${h.amount>0?'+':''}${h.amount}P
+        </span>
+      </div>
+      <div style="color:var(--t2);margin-top:2px">${h.reason}</div>
+      <div style="color:var(--t3);margin-top:2px">${h.time}</div>
+    </div>`).join('')
+  : '<div style="padding:20px;text-align:center;color:var(--t3);font-size:13px">내역 없음</div>';
+}
+
+async function bulkGivePoints() {
+  const pts    = parseInt(document.getElementById('bulk-pts').value);
+  const reason = document.getElementById('bulk-reason').value.trim();
+  if (!pts || !reason) { toast('포인트와 사유를 입력하세요', true); return; }
+  showConfirm('전체 지급', `전체 회원에게 ${pts}P를 지급하시겠습니까?\n사유: ${reason}`, async () => {
+    toast(`✅ 전체 회원에게 ${pts}P 지급 완료! (데모)`);
+  });
+}
+
+// ============================================================
+// 캐릭터 현황
+// ============================================================
+async function loadCharacters() {
+  const filter = document.getElementById('char-filter')?.value || '';
+  const chars  = ADMIN.isDemo ? DEMO.chars : (await api('GET','/admin/characters'))?.characters || [];
+
+  const stages = ['egg','baby','child','teen','adult'];
+  stages.forEach(s => {
+    const cnt = chars.filter(c=>c.stage===s&&!c.is_dead).length;
+    const el  = document.getElementById('cnt-'+s);
+    if (el) el.textContent = cnt;
+  });
+
+  const filtered = filter ? chars.filter(c=>c.stage===filter||(filter==='dead'&&c.is_dead)) : chars;
+  const stageLabel = {egg:'🥚알',baby:'🐣아기',child:'🐥어린이',teen:'🐤청소년',adult:'🐾어른',dead:'💀사망'};
+  const vColor = ['','badge-teal','badge-blue','badge-yellow','badge-yellow','badge-yellow'];
+
+  document.getElementById('chars-body').innerHTML = filtered.map(c=>`
+    <tr>
+      <td style="color:var(--t3)">#${c.id}</td>
+      <td><strong>${c.name}</strong></td>
+      <td>${c.owner_nickname||'-'}</td>
+      <td>${stageLabel[c.stage]||c.stage}</td>
+      <td><span class="badge ${vColor[c.version||1]}">v${c.version||1}</span></td>
+      <td>
+        <div style="display:flex;align-items:center;gap:6px">
+          <div style="width:50px;height:5px;background:rgba(255,255,255,0.1);border-radius:3px">
+            <div style="width:${c.health||0}%;height:100%;background:${(c.health||0)>60?'var(--green)':(c.health||0)>30?'var(--orange)':'var(--red)'};border-radius:3px"></div>
+          </div>
+          ${c.health||0}%
+        </div>
+      </td>
+      <td>${c.age||0}일</td>
+      <td>${c.is_dead?'<span class="badge badge-gray">사망</span>':c.is_for_sale?'<span class="badge badge-yellow">판매중</span>':'<span class="badge badge-green">성장중</span>'}</td>
+    </tr>`).join('') || '<tr><td colspan="8" style="text-align:center;color:var(--t3);padding:30px">캐릭터 없음</td></tr>';
+}
+
+// ============================================================
+// 마켓
+// ============================================================
+async function loadMarket() {
+  const chars = ADMIN.isDemo
+    ? DEMO.chars.filter(c=>c.is_for_sale)
+    : (await api('GET','/game/market'))?.market || [];
+
+  document.getElementById('market-body').innerHTML = chars.length ? chars.map(c=>`
+    <tr>
+      <td><strong>${c.name}</strong></td>
+      <td>${c.owner_nickname||'-'}</td>
+      <td><span class="badge badge-teal">v${c.version||1}</span></td>
+      <td style="color:var(--yellow);font-weight:700">${(c.sale_price||c.price||0).toLocaleString()}P</td>
+      <td style="color:var(--t3)">${(c.created_at||'').substring(0,10)||'오늘'}</td>
+      <td><button class="btn btn-xs btn-danger" onclick="cancelListing(${c.id})">판매 취소</button></td>
+    </tr>`).join('')
+  : '<tr><td colspan="6" style="text-align:center;color:var(--t3);padding:30px">판매 중인 캐릭터 없음</td></tr>';
+}
+
+function cancelListing(id) {
+  showConfirm('판매 취소', `캐릭터 #${id}의 판매를 취소하시겠습니까?`, () => {
+    toast(`✅ 캐릭터 #${id} 판매 취소 완료`);
+    loadMarket();
+  });
+}
+
+// ============================================================
+// 상점 가격 설정
+// ============================================================
+async function loadShopItems() {
+  const items = ADMIN.isDemo ? DEMO.shopItems : (await api('GET','/shop/items'))?.items || DEMO.shopItems;
+  ADMIN.shopItems = items;
+  const icons = { food:'🍖', medicine:'💊', clean:'🪣', toy:'🎾', sleep:'💤', light:'💡' };
+  document.getElementById('shop-items-form').innerHTML = items.map(item=>`
+    <div style="display:flex;align-items:center;gap:12px;padding:10px;background:var(--bg-card2);border-radius:8px">
+      <span style="font-size:20px;width:28px;text-align:center">${icons[item.item_type]||'📦'}</span>
+      <span style="font-weight:700;flex:1">${item.name}</span>
+      <span style="font-size:12px;color:var(--t2)">v1 기준가</span>
+      <input class="input" style="width:80px;text-align:center" type="number"
+             id="price-${item.item_type}" value="${item.price}" min="1">
+      <span style="font-size:12px;color:var(--t2)">P</span>
+      <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer">
+        <input type="checkbox" id="active-${item.item_type}" ${item.is_active?'checked':''}>
+        판매중
+      </label>
+    </div>`).join('');
+}
+
+async function saveShopPrices() {
+  const results = [];
+  for (const item of ADMIN.shopItems) {
+    const price    = parseInt(document.getElementById('price-'+item.item_type)?.value);
+    const isActive = document.getElementById('active-'+item.item_type)?.checked;
+    if (!ADMIN.isDemo) {
+      await api('PUT', `/admin/shop/${item.item_type}`, { price, isActive });
+    }
+    results.push(`${item.name}: ${price}P`);
+  }
+  toast('✅ 가격 저장 완료!\n' + results.join(', '));
+}
+
+// ============================================================
+// 오류 로그
+// ============================================================
+async function loadLogs() {
+  const filter = document.getElementById('log-filter')?.value || '';
+  const logs   = ADMIN.isDemo ? DEMO.logs : (await api('GET','/admin/errors'))?.errors || [];
+  const filtered = filter ? logs.filter(l=>l.level===filter) : logs;
+
+  document.getElementById('log-list').innerHTML = filtered.length ? filtered.map(l=>`
+    <div class="log-item">
+      <span class="log-time">${(l.created_at||'').substring(11,19)||'--:--:--'}</span>
+      <span class="log-level ${l.level}">${l.level.toUpperCase()}</span>
+      <span class="log-msg">${l.message||''}</span>
+    </div>`).join('')
+  : '<div style="padding:30px;text-align:center;color:var(--t3)">로그 없음</div>';
+}
+
+// ============================================================
+// 공지사항
+// ============================================================
+function postNotice() {
+  const title = document.getElementById('notice-title').value.trim();
+  const body  = document.getElementById('notice-body').value.trim();
+  const type  = document.getElementById('notice-type').value;
+  if (!title || !body) { toast('제목과 내용을 입력하세요', true); return; }
+
+  ADMIN.notices.unshift({ title, body, type, date: new Date().toLocaleDateString('ko-KR') });
+  localStorage.setItem('admin_notices', JSON.stringify(ADMIN.notices));
+  document.getElementById('notice-title').value = '';
+  document.getElementById('notice-body').value  = '';
+  toast('✅ 공지 발행 완료!');
+  renderNotices();
+}
+
+function previewNotice() {
+  const title = document.getElementById('notice-title').value;
+  const body  = document.getElementById('notice-body').value;
+  if (!title) { toast('미리볼 내용을 먼저 입력하세요', true); return; }
+  showConfirm('공지 미리보기', `제목: ${title}\n\n내용: ${body}`, ()=>{});
+}
+
+function renderNotices() {
+  const typeLabels = { info:'일반', event:'이벤트', maintenance:'점검', update:'업데이트' };
+  const typeBadge  = { info:'badge-blue', event:'badge-yellow', maintenance:'badge-red', update:'badge-green' };
+  document.getElementById('notice-list').innerHTML = ADMIN.notices.length
+    ? ADMIN.notices.map((n,i)=>`
+      <div style="padding:16px 20px;border-bottom:1px solid var(--border);display:flex;gap:12px;align-items:flex-start">
+        <div style="flex:1">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+            <span class="badge ${typeBadge[n.type]||'badge-gray'}">${typeLabels[n.type]||n.type}</span>
+            <strong style="font-size:14px">${n.title}</strong>
+          </div>
+          <div style="font-size:13px;color:var(--t2);margin-bottom:4px">${n.body.substring(0,80)}${n.body.length>80?'...':''}</div>
+          <div style="font-size:11px;color:var(--t3)">${n.date}</div>
+        </div>
+        <button class="btn btn-xs btn-danger" onclick="deleteNotice(${i})">삭제</button>
+      </div>`).join('')
+    : '<div style="padding:30px;text-align:center;color:var(--t3);font-size:13px">발행된 공지가 없습니다.</div>';
+}
+
+function deleteNotice(idx) {
+  ADMIN.notices.splice(idx, 1);
+  localStorage.setItem('admin_notices', JSON.stringify(ADMIN.notices));
+  renderNotices();
+  toast('공지 삭제됨');
+}
+
+// ============================================================
+// 모달
+// ============================================================
+let confirmCb;
+function showConfirm(title, body, cb) {
+  document.getElementById('modal-title').textContent = title;
+  document.getElementById('modal-body').innerHTML = body.replace(/\n/g,'<br>');
+  confirmCb = cb;
+  document.getElementById('modal-confirm').classList.add('show');
+}
+document.getElementById('modal-ok-btn').onclick = () => { closeModal(); if(confirmCb) confirmCb(); };
+function closeModal() { document.getElementById('modal-confirm').classList.remove('show'); }
+document.getElementById('modal-confirm').addEventListener('click', e => { if(e.target.id==='modal-confirm') closeModal(); });
+
+// ============================================================
+// 사이드바 모바일
+// ============================================================
+function openSidebar()  { document.getElementById('sidebar').classList.add('open'); document.getElementById('mobile-overlay').classList.add('show'); }
+function closeSidebar() { document.getElementById('sidebar').classList.remove('open'); document.getElementById('mobile-overlay').classList.remove('show'); }
+
+// ============================================================
+// 새로고침
+// ============================================================
+function refreshAll() {
+  const active = document.querySelector('.section.active')?.id?.replace('section-','');
+  if (active==='dashboard') loadDashboard();
+  else if (active==='users') loadUsers();
+  else if (active==='characters') loadCharacters();
+  else if (active==='market') loadMarket();
+  else if (active==='logs') loadLogs();
+  toast('새로고침 완료');
+}
+
+// ============================================================
+// 초기화
+// ============================================================
+window.addEventListener('load', () => {
+  // 저장된 토큰이 있으면 자동 로그인
+  if (ADMIN.token && ADMIN.user?.isAdmin) {
+    enterAdmin();
+  }
+  // 데모: 이미 admin 설정되어 있으면
+  renderNotices();
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>HatchUp 버전 시스템</title>
+<link href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:     #08081a;
+  --card:   #10102a;
+  --card2:  #181838;
+  --border: rgba(255,255,255,0.08);
+  --yellow: #f5c842;
+  --teal:   #4ecdc4;
+  --green:  #2ed573;
+  --red:    #ff4757;
+  --pink:   #ff6eb4;
+  --blue:   #5352ed;
+  --orange: #ffa502;
+  --t1: rgba(255,255,255,0.92);
+  --t2: rgba(255,255,255,0.55);
+  --t3: rgba(255,255,255,0.25);
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Noto Sans KR', sans-serif;
+  background: var(--bg);
+  color: var(--t1);
+  min-height: 100vh;
+  padding-bottom: 40px;
+}
+
+/* 헤더 */
+.header {
+  background: var(--card);
+  border-bottom: 1px solid var(--border);
+  padding: 14px 20px;
+  display: flex; align-items: center; gap: 12px;
+  position: sticky; top: 0; z-index: 10;
+}
+.header-back {
+  width: 36px; height: 36px; border-radius: 8px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; font-size: 18px; color: var(--t1);
+  text-decoration: none; flex-shrink: 0;
+}
+.header-title { font-size: 16px; font-weight: 700; flex: 1; }
+.header-pts {
+  background: rgba(245,200,66,0.12);
+  border: 1px solid rgba(245,200,66,0.25);
+  border-radius: 99px; padding: 6px 14px;
+  font-size: 13px; font-weight: 700; color: var(--yellow);
+}
+
+.container { max-width: 520px; margin: 0 auto; padding: 20px 16px; }
+
+/* 현재 버전 배너 */
+.current-banner {
+  border-radius: 20px;
+  padding: 20px;
+  margin-bottom: 24px;
+  position: relative;
+  overflow: hidden;
+  text-align: center;
+}
+.current-banner::before {
+  content: '';
+  position: absolute; inset: 0;
+  opacity: 0.12;
+}
+.banner-emoji { font-size: 48px; margin-bottom: 6px; }
+.banner-ver   { font-family: 'DotGothic16', monospace; font-size: 14px; opacity: 0.7; }
+.banner-name  { font-size: 22px; font-weight: 700; margin: 4px 0; }
+.banner-desc  { font-size: 12px; opacity: 0.7; }
+
+/* 섹션 타이틀 */
+.sec-title {
+  font-size: 12px; font-weight: 700;
+  color: var(--t2); text-transform: uppercase;
+  letter-spacing: 1.2px; margin-bottom: 12px; margin-top: 24px;
+}
+
+/* 버전 카드 */
+.version-card {
+  background: var(--card);
+  border: 1.5px solid var(--border);
+  border-radius: 18px;
+  margin-bottom: 12px;
+  overflow: hidden;
+  transition: border-color 0.2s;
+}
+.version-card.active   { border-color: var(--yellow); }
+.version-card.unlocked { border-color: rgba(46,213,115,0.4); }
+.version-card.locked   { opacity: 0.6; }
+
+.vc-header {
+  display: flex; align-items: center; gap: 14px;
+  padding: 16px 18px; cursor: pointer;
+}
+.vc-emoji { font-size: 32px; flex-shrink: 0; }
+.vc-info  { flex: 1; }
+.vc-ver   { font-size: 11px; color: var(--t2); font-family: 'DotGothic16', monospace; }
+.vc-name  { font-size: 15px; font-weight: 700; margin: 2px 0; }
+.vc-desc  { font-size: 11px; color: var(--t2); }
+.vc-badge {
+  font-size: 11px; font-weight: 700;
+  padding: 4px 10px; border-radius: 99px; white-space: nowrap;
+}
+.badge-active   { background: rgba(245,200,66,0.15); color: var(--yellow); }
+.badge-unlocked { background: rgba(46,213,115,0.15); color: var(--green); }
+.badge-locked   { background: rgba(255,255,255,0.07); color: var(--t3); }
+.badge-prestige { background: rgba(255,71,87,0.15); color: var(--red); }
+
+.vc-body {
+  padding: 0 18px 16px;
+  border-top: 1px solid var(--border);
+  display: none;
+}
+.vc-body.open { display: block; }
+
+/* 스탯 그리드 */
+.stat-grid {
+  display: grid; grid-template-columns: 1fr 1fr 1fr;
+  gap: 8px; margin: 14px 0;
+}
+.stat-box {
+  background: rgba(255,255,255,0.04);
+  border-radius: 10px; padding: 10px;
+  text-align: center;
+}
+.stat-box-val { font-size: 18px; font-weight: 700; }
+.stat-box-lbl { font-size: 10px; color: var(--t2); margin-top: 2px; }
+
+/* 단계별 진화 타임라인 */
+.evo-timeline {
+  display: flex; gap: 0; margin: 14px 0;
+  background: rgba(255,255,255,0.04);
+  border-radius: 12px; overflow: hidden;
+}
+.evo-stage {
+  flex: 1; padding: 10px 4px; text-align: center;
+  font-size: 10px; border-right: 1px solid rgba(255,255,255,0.06);
+  position: relative;
+}
+.evo-stage:last-child { border-right: none; }
+.evo-stage-icon { font-size: 18px; margin-bottom: 3px; }
+.evo-stage-name { color: var(--t2); font-size: 9px; }
+.evo-stage-day  { color: var(--yellow); font-weight: 700; font-size: 10px; }
+
+/* 판매가 범위 */
+.sale-range {
+  background: rgba(245,200,66,0.06);
+  border: 1px solid rgba(245,200,66,0.2);
+  border-radius: 12px; padding: 12px 14px;
+  margin: 10px 0;
+  display: flex; justify-content: space-between; align-items: center;
+}
+.sale-range-label { font-size: 12px; color: var(--t2); }
+.sale-range-val   { font-size: 14px; font-weight: 700; color: var(--yellow); }
+
+/* 해금 조건 */
+.unlock-cond {
+  background: rgba(255,71,87,0.06);
+  border: 1px solid rgba(255,71,87,0.2);
+  border-radius: 12px; padding: 12px 14px;
+  margin: 10px 0; font-size: 12px; color: var(--red);
+  display: flex; align-items: center; gap: 8px;
+}
+.unlock-progress {
+  font-size: 11px; color: var(--t2); margin-top: 4px;
+}
+
+/* 시작 버튼 */
+.start-btn {
+  width: 100%; padding: 13px;
+  border-radius: 12px; border: none;
+  font-size: 14px; font-weight: 700;
+  font-family: 'Noto Sans KR', sans-serif;
+  cursor: pointer; transition: all 0.15s; margin-top: 10px;
+}
+.start-btn.can-start {
+  background: var(--yellow); color: #1a1200;
+}
+.start-btn.can-start:hover { background: #ffd55a; }
+.start-btn.cant-start {
+  background: rgba(255,255,255,0.06);
+  color: var(--t3); cursor: not-allowed;
+}
+
+/* 프레스티지 섹션 */
+.prestige-box {
+  background: linear-gradient(135deg, rgba(255,71,87,0.1), rgba(255,106,0,0.1));
+  border: 1px solid rgba(255,71,87,0.3);
+  border-radius: 18px; padding: 20px;
+  margin-top: 16px; text-align: center;
+}
+.prestige-title { font-size: 18px; font-weight: 700; color: var(--red); margin-bottom: 6px; }
+.prestige-desc  { font-size: 12px; color: var(--t2); margin-bottom: 16px; line-height: 1.7; }
+.prestige-reward {
+  background: rgba(255,71,87,0.1);
+  border-radius: 10px; padding: 10px;
+  font-size: 13px; margin-bottom: 14px;
+  color: var(--orange);
+}
+.prestige-btn {
+  background: linear-gradient(135deg, var(--red), var(--orange));
+  color: white; border: none; border-radius: 12px;
+  padding: 13px 24px; font-size: 14px; font-weight: 700;
+  font-family: 'Noto Sans KR', sans-serif;
+  cursor: pointer; transition: all 0.15s;
+}
+.prestige-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 20px rgba(255,71,87,0.3); }
+.prestige-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+/* 리더보드 */
+.lb-item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 16px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px; margin-bottom: 8px;
+}
+.lb-rank {
+  width: 28px; height: 28px; border-radius: 8px;
+  background: rgba(255,255,255,0.06);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 700; flex-shrink: 0;
+}
+.lb-rank.gold   { background: rgba(245,200,66,0.2); color: var(--yellow); }
+.lb-rank.silver { background: rgba(200,200,200,0.15); color: #ccc; }
+.lb-rank.bronze { background: rgba(205,127,50,0.2); color: #cd7f32; }
+.lb-info { flex: 1; }
+.lb-nick  { font-size: 13px; font-weight: 700; }
+.lb-sub   { font-size: 11px; color: var(--t2); }
+.lb-val   { font-size: 14px; font-weight: 700; color: var(--yellow); }
+
+/* 탭 */
+.tabs {
+  display: flex; background: rgba(255,255,255,0.04);
+  border-radius: 10px; padding: 4px; margin-bottom: 20px;
+}
+.tab {
+  flex: 1; padding: 8px; text-align: center;
+  font-size: 12px; font-weight: 700;
+  border-radius: 7px; cursor: pointer;
+  color: var(--t2); transition: all 0.2s;
+}
+.tab.active { background: var(--yellow); color: #1a1200; }
+
+/* 토스트 */
+#toast {
+  position: fixed; top: 70px; left: 50%;
+  transform: translateX(-50%) translateY(-80px);
+  background: var(--green); color: #001a0a;
+  font-size: 13px; font-weight: 700;
+  padding: 10px 20px; border-radius: 99px;
+  white-space: nowrap; z-index: 9999;
+  transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+}
+#toast.show { transform: translateX(-50%) translateY(0); }
+#toast.err  { background: var(--red); color: white; }
+
+/* 버전별 색상 테마 */
+.v1 { --vc: #ffccaa; }
+.v2 { --vc: #aaccff; }
+.v3 { --vc: #aaffcc; }
+.v4 { --vc: #ffaacc; }
+.v5 { --vc: #ffdd44; }
+</style>
+</head>
+<body>
+
+<div id="toast"></div>
+
+<div class="header">
+  <a class="header-back" href="javascript:history.back()">←</a>
+  <div class="header-title">🎮 버전 성장 시스템</div>
+  <div class="header-pts">⭐ <span id="my-pts">-</span>P</div>
+</div>
+
+<div class="container">
+
+  <!-- 현재 버전 배너 -->
+  <div class="current-banner" id="current-banner"
+       style="background:linear-gradient(135deg,rgba(245,200,66,0.15),rgba(245,200,66,0.05));border:1px solid rgba(245,200,66,0.3)">
+    <div class="banner-emoji" id="banner-emoji">🥚</div>
+    <div class="banner-ver" id="banner-ver">현재 버전</div>
+    <div class="banner-name" id="banner-name">로딩 중...</div>
+    <div class="banner-desc" id="banner-desc">데이터를 불러오는 중입니다</div>
+  </div>
+
+  <!-- 탭 -->
+  <div class="tabs">
+    <div class="tab active" id="tab-versions" onclick="switchTab('versions')">📋 버전 목록</div>
+    <div class="tab" id="tab-leaderboard" onclick="switchTab('leaderboard')">🏆 리더보드</div>
+  </div>
+
+  <!-- 버전 목록 -->
+  <div id="panel-versions">
+    <div id="version-list">
+      <div style="text-align:center;padding:40px;color:var(--t2)">로딩 중...</div>
+    </div>
+
+    <!-- 프레스티지 박스 -->
+    <div class="prestige-box" id="prestige-box" style="display:none">
+      <div class="prestige-title">🔥 프레스티지 재시작</div>
+      <div class="prestige-desc">
+        레전드(5단계) 캐릭터를 판매하면 프레스티지할 수 있습니다.<br>
+        1단계부터 다시 시작하지만 <strong style="color:var(--orange)">보너스 포인트</strong>를 받아요!
+      </div>
+      <div class="prestige-reward" id="prestige-reward">
+        🎁 다음 프레스티지 보너스: <strong>계산 중...</strong>
+      </div>
+      <button class="prestige-btn" id="prestige-btn" onclick="doPrestige()">
+        🔄 프레스티지 재시작
+      </button>
+    </div>
+  </div>
+
+  <!-- 리더보드 -->
+  <div id="panel-leaderboard" style="display:none">
+    <div class="sec-title">💰 최고 판매가 랭킹</div>
+    <div id="lb-sellers">
+      <div style="text-align:center;padding:30px;color:var(--t2);font-size:13px">로딩 중...</div>
+    </div>
+
+    <div class="sec-title">🔥 프레스티지 랭킹</div>
+    <div id="lb-prestige">
+      <div style="text-align:center;padding:30px;color:var(--t2);font-size:13px">로딩 중...</div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ============================================================
+// 설정
+// ============================================================
+const API   = window.location.hostname === 'localhost' ? 'http://localhost:3000/api' : '/api';
+const TOKEN = localStorage.getItem('tama_token');
+
+// 버전별 UI 색상
+const VER_COLORS = {
+  1: { grad:'rgba(255,200,100,0.12)', border:'rgba(255,200,100,0.3)', txt:'#ffccaa' },
+  2: { grad:'rgba(100,150,255,0.12)', border:'rgba(100,150,255,0.3)', txt:'#aaccff' },
+  3: { grad:'rgba(100,255,180,0.12)', border:'rgba(100,255,180,0.3)', txt:'#aaffcc' },
+  4: { grad:'rgba(255,100,180,0.12)', border:'rgba(255,100,180,0.3)', txt:'#ffaacc' },
+  5: { grad:'rgba(255,200,50,0.15)',  border:'rgba(255,200,50,0.4)',  txt:'#ffdd44' },
+};
+
+// 단계별 아이콘
+const STAGE_ICONS = { egg:'🥚', baby:'🐣', child:'🐥', teen:'🐤', adult:'🐾' };
+
+let STATE = { versions: [], activeVersion: null, prestigeCount: 0 };
+
+// ============================================================
+// API 헬퍼
+// ============================================================
+async function api(method, path, body) {
+  try {
+    const opts = { method, headers: { 'Content-Type':'application/json', 'Authorization':'Bearer '+TOKEN } };
+    if (body) opts.body = JSON.stringify(body);
+    const res = await fetch(API + path, opts);
+    return await res.json();
+  } catch(e) { return { success:false, message:'서버 연결 실패' }; }
+}
+
+// ============================================================
+// 토스트
+// ============================================================
+let toastTimer;
+function toast(msg, isErr=false) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'show' + (isErr?' err':'');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.className = '', 2800);
+}
+
+// ============================================================
+// 탭 전환
+// ============================================================
+function switchTab(tab) {
+  document.getElementById('tab-versions').classList.toggle('active', tab==='versions');
+  document.getElementById('tab-leaderboard').classList.toggle('active', tab==='leaderboard');
+  document.getElementById('panel-versions').style.display    = tab==='versions'    ? 'block' : 'none';
+  document.getElementById('panel-leaderboard').style.display = tab==='leaderboard' ? 'block' : 'none';
+  if (tab==='leaderboard') loadLeaderboard();
+}
+
+// ============================================================
+// 초기화 - 버전 상태 로드
+// ============================================================
+async function init() {
+  // 포인트 표시
+  const user = JSON.parse(localStorage.getItem('tama_user') || '{}');
+  document.getElementById('my-pts').textContent = (user.points||0).toLocaleString();
+
+  const data = await api('GET', '/version/status');
+
+  if (!data?.success) {
+    // 서버 없으면 데모 데이터
+    renderDemo(); return;
+  }
+
+  STATE.versions       = data.versions;
+  STATE.activeVersion  = data.activeCharVersion;
+  STATE.maxUnlocked    = data.maxUnlocked;
+
+  // 현재 버전 배너
+  const cur = data.versions.find(v => v.version === (data.activeCharVersion || 1));
+  if (cur) updateBanner(cur);
+
+  renderVersions(data.versions, data.activeCharVersion);
+}
+
+// ============================================================
+// 현재 버전 배너 업데이트
+// ============================================================
+function updateBanner(ver) {
+  const col = VER_COLORS[ver.version] || VER_COLORS[1];
+  const banner = document.getElementById('current-banner');
+  banner.style.background = `linear-gradient(135deg, ${col.grad}, rgba(0,0,0,0))`;
+  banner.style.border     = `1px solid ${col.border}`;
+  document.getElementById('banner-emoji').textContent = ver.emoji;
+  document.getElementById('banner-ver').textContent   = `${ver.version}단계`;
+  document.getElementById('banner-name').textContent  = ver.name;
+  document.getElementById('banner-desc').textContent  = ver.description;
+}
+
+// ============================================================
+// 버전 카드 렌더링
+// ============================================================
+function renderVersions(versions, activeVer) {
+  const list = document.getElementById('version-list');
+  list.innerHTML = versions.map(v => buildVersionCard(v, activeVer)).join('');
+
+  // 현재 버전 카드 자동 펼치기
+  if (activeVer) {
+    const card = document.getElementById(`vc-body-${activeVer}`);
+    if (card) card.classList.add('open');
+  } else {
+    const card = document.getElementById('vc-body-1');
+    if (card) card.classList.add('open');
+  }
+
+  // 5단계 완료 시 프레스티지 버튼 표시
+  const v5 = versions.find(v => v.version === 5);
+  if (v5?.stats?.sold > 0) {
+    const box = document.getElementById('prestige-box');
+    box.style.display = 'block';
+    // 현재 프레스티지 횟수 기반 다음 보너스 계산
+    const user = JSON.parse(localStorage.getItem('tama_user') || '{}');
+    const nextBonus = ((user.prestige_count || 0) + 1) * 500;
+    document.getElementById('prestige-reward').innerHTML =
+      `🎁 다음 프레스티지 보너스: <strong style="color:var(--orange)">${nextBonus.toLocaleString()}P</strong>`;
+  }
+}
+
+function buildVersionCard(v, activeVer) {
+  const col      = VER_COLORS[v.version] || VER_COLORS[1];
+  const isActive = v.version === activeVer;
+  const status   = isActive ? 'active' : v.unlocked ? 'unlocked' : 'locked';
+
+  const badgeText  = isActive ? '진행 중' : v.unlocked ? '해금됨' : '잠김';
+  const badgeClass = isActive ? 'badge-active' : v.unlocked ? 'badge-unlocked' : 'badge-locked';
+
+  // 아이템 가격 배율 예시
+  const foodPrice = 10 * v.config.priceMultiplier;
+
+  // 진화 일정
+  const evoStages = [
+    { stage:'egg',   icon:'🥚', name:'알',    day:0 },
+    { stage:'baby',  icon:'🐣', name:'아기',  day: Math.floor(v.config.growDays * 0.1) },
+    { stage:'child', icon:'🐥', name:'어린이',day: Math.floor(v.config.growDays * 0.35) },
+    { stage:'teen',  icon:'🐤', name:'청소년',day: Math.floor(v.config.growDays * 0.65) },
+    { stage:'adult', icon:'🐾', name:'어른',  day: v.config.growDays },
+  ];
+
+  const canStart = v.unlocked && !isActive;
+
+  return `
+  <div class="version-card ${status}" id="vc-${v.version}">
+    <div class="vc-header" onclick="toggleCard(${v.version})">
+      <div class="vc-emoji">${v.emoji}</div>
+      <div class="vc-info">
+        <div class="vc-ver">${v.version}단계</div>
+        <div class="vc-name" style="color:${col.txt}">${v.name}</div>
+        <div class="vc-desc">${v.description}</div>
+      </div>
+      <div>
+        <div class="vc-badge ${badgeClass}">${badgeText}</div>
+        ${v.config.prestige ? '<div class="vc-badge badge-prestige" style="margin-top:4px">프레스티지</div>' : ''}
+      </div>
+    </div>
+
+    <div class="vc-body" id="vc-body-${v.version}">
+
+      <!-- 스탯 -->
+      <div class="stat-grid">
+        <div class="stat-box">
+          <div class="stat-box-val" style="color:${col.txt}">${v.config.growDays}일</div>
+          <div class="stat-box-lbl">성장 기간</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-box-val" style="color:${col.txt}">×${v.config.priceMultiplier}</div>
+          <div class="stat-box-lbl">아이템 가격</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-box-val" style="color:${col.txt}">${v.stats?.sold || 0}회</div>
+          <div class="stat-box-lbl">판매 완료</div>
+        </div>
+      </div>
+
+      <!-- 아이템 가격 예시 -->
+      <div style="font-size:12px;color:var(--t2);padding:8px 0;border-top:1px solid var(--border)">
+        💡 아이템 가격 예시:
+        먹이 <strong style="color:${col.txt}">${foodPrice}P</strong> ·
+        장난감 <strong style="color:${col.txt}">${25 * v.config.priceMultiplier}P</strong> ·
+        약 <strong style="color:${col.txt}">${20 * v.config.priceMultiplier}P</strong>
+      </div>
+
+      <!-- 진화 타임라인 -->
+      <div style="font-size:11px;color:var(--t2);margin:10px 0 6px">⏰ 성장 일정</div>
+      <div class="evo-timeline">
+        ${evoStages.map(s => `
+          <div class="evo-stage">
+            <div class="evo-stage-icon">${s.icon}</div>
+            <div class="evo-stage-name">${s.name}</div>
+            <div class="evo-stage-day">${s.day}일</div>
+          </div>
+        `).join('')}
+      </div>
+
+      <!-- 판매가 범위 -->
+      <div class="sale-range">
+        <div>
+          <div class="sale-range-label">판매가 범위</div>
+          <div style="font-size:11px;color:var(--t3)">추천가: ${v.config.salePrice.recommend.toLocaleString()}P</div>
+        </div>
+        <div class="sale-range-val">
+          ${v.config.salePrice.min.toLocaleString()} ~ ${v.config.salePrice.max.toLocaleString()}P
+        </div>
+      </div>
+
+      <!-- 최고 판매가 (있는 경우) -->
+      ${v.stats?.bestSale > 0 ? `
+        <div style="font-size:12px;color:var(--t2);text-align:center;padding:4px 0">
+          🏆 내 최고 판매가: <strong style="color:${col.txt}">${v.stats.bestSale.toLocaleString()}P</strong>
+        </div>` : ''}
+
+      <!-- 해금 조건 (잠긴 경우) -->
+      ${!v.unlocked && v.unlockMsg ? `
+        <div class="unlock-cond">
+          🔒 ${v.unlockMsg}
+          <div class="unlock-progress">${v.progress || ''}</div>
+        </div>` : ''}
+
+      <!-- 시작 버튼 -->
+      <button
+        class="start-btn ${canStart ? 'can-start' : 'cant-start'}"
+        onclick="${canStart ? `startVersion(${v.version})` : ''}"
+        ${!canStart ? 'disabled' : ''}
+      >
+        ${isActive ? '✅ 현재 진행 중' :
+          !v.unlocked ? '🔒 해금 후 시작 가능' :
+          `🥚 ${v.version}단계 시작하기`}
+      </button>
+    </div>
+  </div>`;
+}
+
+// ============================================================
+// 버전 카드 열기/닫기
+// ============================================================
+function toggleCard(version) {
+  const body = document.getElementById(`vc-body-${version}`);
+  body.classList.toggle('open');
+}
+
+// ============================================================
+// 새 버전 시작
+// ============================================================
+async function startVersion(version) {
+  if (!confirm(`${version}단계 캐릭터를 시작하시겠습니까?\n새 알이 태어납니다!`)) return;
+
+  const data = await api('POST', '/version/start', { version });
+  if (data?.success) {
+    toast(`🥚 ${data.message}`);
+    setTimeout(() => { window.location.href = '/'; }, 1500);
+  } else {
+    toast(data?.message || '시작 실패', true);
+  }
+}
+
+// ============================================================
+// 프레스티지 재시작
+// ============================================================
+async function doPrestige() {
+  if (!confirm('🔥 프레스티지 재시작하시겠습니까?\n1단계부터 다시 시작하지만 보너스 포인트를 받습니다!')) return;
+
+  const btn = document.getElementById('prestige-btn');
+  btn.disabled = true;
+  btn.textContent = '처리 중...';
+
+  const data = await api('POST', '/version/prestige');
+  if (data?.success) {
+    toast(`🔥 ${data.message}`);
+    // 포인트 업데이트
+    const user = JSON.parse(localStorage.getItem('tama_user') || '{}');
+    user.points = (user.points || 0) + data.bonusPoints;
+    user.prestige_count = data.prestigeCount;
+    localStorage.setItem('tama_user', JSON.stringify(user));
+    document.getElementById('my-pts').textContent = user.points.toLocaleString();
+    setTimeout(() => { window.location.href = '/'; }, 2000);
+  } else {
+    toast(data?.message || '프레스티지 실패', true);
+    btn.disabled = false;
+    btn.textContent = '🔄 프레스티지 재시작';
+  }
+}
+
+// ============================================================
+// 리더보드
+// ============================================================
+async function loadLeaderboard() {
+  const data = await api('GET', '/version/leaderboard');
+  const rankClass = ['gold','silver','bronze'];
+
+  // 판매 랭킹
+  const sellers = data?.topSellers || demoSellers();
+  document.getElementById('lb-sellers').innerHTML = sellers.length
+    ? sellers.map((s,i) => `
+      <div class="lb-item">
+        <div class="lb-rank ${rankClass[i]||''}">${i+1}</div>
+        <div class="lb-info">
+          <div class="lb-nick">${s.nickname}</div>
+          <div class="lb-sub">v${s.max_version} · 총 ${s.total_sold}회 판매</div>
+        </div>
+        <div class="lb-val">${(s.best_sale||0).toLocaleString()}P</div>
+      </div>`).join('')
+    : '<div style="text-align:center;padding:30px;color:var(--t2);font-size:13px">아직 판매 기록이 없습니다.</div>';
+
+  // 프레스티지 랭킹
+  const prestige = data?.topPrestige || demoPrestige();
+  document.getElementById('lb-prestige').innerHTML = prestige.filter(p=>p.prestige_count>0).length
+    ? prestige.filter(p=>p.prestige_count>0).map((p,i) => `
+      <div class="lb-item">
+        <div class="lb-rank ${rankClass[i]||''}">${i+1}</div>
+        <div class="lb-info">
+          <div class="lb-nick">${p.nickname}</div>
+          <div class="lb-sub">${(p.points||0).toLocaleString()}P 보유</div>
+        </div>
+        <div class="lb-val">🔥 ${p.prestige_count}회</div>
+      </div>`).join('')
+    : '<div style="text-align:center;padding:30px;color:var(--t2);font-size:13px">아직 프레스티지 달성자가 없습니다.</div>';
+}
+
+// 데모 더미 데이터
+function demoSellers() {
+  return [
+    { nickname:'별빛유저', max_version:3, total_sold:5, best_sale:4200 },
+    { nickname:'달빛요정', max_version:2, total_sold:3, best_sale:1800 },
+    { nickname:'하늘빛',   max_version:1, total_sold:2, best_sale:650  },
+  ];
+}
+function demoPrestige() {
+  return [
+    { nickname:'레전드유저', prestige_count:3, points:15000 },
+    { nickname:'별빛유저',   prestige_count:1, points:8000  },
+  ];
+}
+
+// 데모 모드 렌더링 (서버 없을 때)
+function renderDemo() {
+  const demoVersions = [1,2,3,4,5].map(v => ({
+    version: v,
+    name: ['베이비','주니어','시니어','엘리트','레전드'][v-1] + ' 버전',
+    emoji: ['🥚','🌟','💎','👑','🔥'][v-1],
+    description: ['기본 시작','1단계 판매 후 해금','2단계 판매 후 해금','3단계 판매 후 해금','최고 등급!'][v-1],
+    unlocked: v === 1,
+    unlockMsg: v > 1 ? `${v-1}단계 캐릭터를 1번 판매해야 합니다.` : null,
+    progress: v > 1 ? `0 / 1` : null,
+    stats: { total:0, sold:0, bestSale:0 },
+    config: {
+      growDays: [30,25,20,15,10][v-1],
+      priceMultiplier: [1,2,3,5,10][v-1],
+      salePrice: {
+        min: [300,800,2000,5000,10000][v-1],
+        max: [800,2000,5000,10000,20000][v-1],
+        recommend: [500,1200,3000,7000,15000][v-1],
+      },
+      prestige: v === 5,
+    }
+  }));
+
+  const cur = demoVersions[0];
+  updateBanner(cur);
+  renderVersions(demoVersions, 1);
+
+  const user = JSON.parse(localStorage.getItem('tama_user') || '{}');
+  document.getElementById('my-pts').textContent = (user.points||500).toLocaleString();
+}
+
+// ============================================================
+// 시작
+// ============================================================
+window.addEventListener('load', init);
+</script>
+</body>
+</html>
