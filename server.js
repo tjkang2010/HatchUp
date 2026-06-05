@@ -21,7 +21,7 @@ const adminRoutes      = require('./routes/admin');
 const paymentRoutes    = require('./routes/payment');
 const pushRoutes       = require('./routes/push');
 const versionRoutes    = require('./routes/version');
-const missionsRoutes   = require('./routes/missions');
+
 const achieveRoutes    = require('./routes/achievements');
 const marketRoutes     = require('./routes/market');
 const { startScheduler, stopScheduler } = require('./scheduler');
@@ -72,7 +72,7 @@ app.use('/api/admin',        adminRoutes);
 app.use('/api/payment',      paymentRoutes);
 app.use('/api/push',         pushRoutes);
 app.use('/api/version',      versionRoutes);
-app.use('/api/missions',     missionsRoutes);   // 신규
+
 app.use('/api/achievements', achieveRoutes);    // 신규
 app.use('/api/market',       marketRoutes);     // 신규
 
