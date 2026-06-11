@@ -1877,10 +1877,12 @@ function marketCard(c) {
 async function buyCharListing(listingId, name, price) {
   if (APP.isDemo) { toast('체험 모드에서는 구매할 수 없어요.'); return; }
   if (!listingId) { toast('구매 정보가 없습니다.'); return; }
-  if (!confirm(\`\${name}을(를) \${price.toLocaleString()}P에 구매하시겠습니까?\`)) return;
-  const data = await api('POST', '/market/buy', { listingId });
-  if (data && data.success) {
-    toast(\`🎉 \${name} 구매 완료! \${price.toLocaleString()}P 차감\`);
+  if (!confirm(`${name}을(를) ${price.toLocaleString()}P에 구매하시겠습니까?`)) return;
+
+const data = await api('POST', '/market/buy', { listingId });
+
+if (data && data.success) {
+  toast(`🎉 ${name} 구매 완료! ${price.toLocaleString()}P 차감`);
     APP.user.points -= price;
     updateGameHeader();
     loadMarket();
