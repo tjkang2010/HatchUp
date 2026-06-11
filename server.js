@@ -21,8 +21,9 @@ const adminRoutes      = require('./routes/admin');
 const paymentRoutes    = require('./routes/payment');
 const pushRoutes       = require('./routes/push');
 const versionRoutes    = require('./routes/version');
-
-
+const missionsRoutes   = require('./routes/missions');
+const achieveRoutes    = require('./routes/achievements');
+const marketRoutes     = require('./routes/market');
 const { startScheduler, stopScheduler } = require('./scheduler');
 const errorHandler     = require('./middleware/errorHandler');
 const logger           = require('./utils/logger');
@@ -71,8 +72,9 @@ app.use('/api/admin',        adminRoutes);
 app.use('/api/payment',      paymentRoutes);
 app.use('/api/push',         pushRoutes);
 app.use('/api/version',      versionRoutes);
-
-
+app.use('/api/missions',     missionsRoutes);   // 신규
+app.use('/api/achievements', achieveRoutes);    // 신규
+app.use('/api/market',       marketRoutes);     // 신규
 
 // 정적 파일
 app.use(express.static(path.join(__dirname, 'public')));
@@ -103,7 +105,7 @@ async function startServer() {
     await db.initialize();
     const server = app.listen(PORT, '0.0.0.0', () => {
       logger.info(`🚀 HatchUp v3.0 실행 중! 포트: ${PORT}`);
-      logger.info(`🎮 HatchUp 기본 API 실행 중`);
+      logger.info(`🎮 신규 API: missions / achievements / market`);
     });
     startScheduler();
     process.on('unhandledRejection', r  => logger.error('비동기 오류: '+(r?.message||r)));

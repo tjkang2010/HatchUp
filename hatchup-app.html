@@ -492,6 +492,155 @@ body::before {
 .modal-bg.show .modal-sheet { transform: translateY(0); }
 .modal-handle { width: 40px; height: 4px; background: var(--border-hi); border-radius: 2px; margin: 0 auto 20px; }
 .modal-title { font-size: 18px; font-weight: 700; margin-bottom: 16px; }
+
+/* ============================================================
+   v3.0 추가 스타일 — EXP바, 희귀도, 쿨다운, 오프라인보상
+   ============================================================ */
+
+/* EXP 바 */
+.exp-bar-wrap {
+  padding: 4px 20px 0;
+  width: 100%;
+}
+.exp-bar-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: var(--text-2);
+  margin-bottom: 3px;
+}
+.exp-bar-bg {
+  height: 6px;
+  background: rgba(255,255,255,0.08);
+  border-radius: 99px;
+  overflow: hidden;
+}
+.exp-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--teal), var(--blue));
+  border-radius: 99px;
+  transition: width 0.4s ease;
+  width: 0%;
+}
+
+/* 희귀도 배지 */
+.rarity-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 99px;
+  font-size: 10px;
+  font-weight: 700;
+  margin-left: 6px;
+}
+.rarity-common   { background: rgba(255,255,255,0.1); color: var(--text-2); }
+.rarity-advanced { background: rgba(78,205,196,0.2);  color: var(--teal); }
+.rarity-rare     { background: rgba(83,82,237,0.25);  color: #8888ff; }
+.rarity-heroic   { background: rgba(255,110,180,0.25);color: var(--pink); }
+.rarity-legendary{ background: rgba(245,200,66,0.25); color: var(--yellow); }
+
+/* 쿨다운 버튼 상태 */
+.hw-btn.cooldown { opacity: 0.4; cursor: not-allowed; }
+.hw-btn .cd-timer {
+  display: block;
+  font-size: 8px;
+  color: rgba(255,255,255,0.6);
+  margin-top: 2px;
+}
+
+/* 오프라인 보상 팝업 */
+.offline-popup {
+  position: fixed;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%) scale(0.85);
+  background: var(--bg-card);
+  border: 1px solid var(--border-hi);
+  border-radius: var(--radius-lg);
+  padding: 24px 28px;
+  z-index: 9999;
+  text-align: center;
+  min-width: 260px;
+  opacity: 0;
+  transition: all 0.3s cubic-bezier(0.34,1.56,0.64,1);
+  pointer-events: none;
+}
+.offline-popup.show {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+  pointer-events: all;
+}
+.offline-popup-icon { font-size: 40px; margin-bottom: 8px; }
+.offline-popup-title { font-size: 16px; font-weight: 700; margin-bottom: 4px; }
+.offline-popup-sub  { font-size: 12px; color: var(--text-2); margin-bottom: 14px; }
+.offline-popup-rewards { display: flex; gap: 16px; justify-content: center; margin-bottom: 16px; }
+.offline-reward-item { text-align: center; }
+.offline-reward-val  { font-size: 20px; font-weight: 700; color: var(--yellow); }
+.offline-reward-lbl  { font-size: 10px; color: var(--text-2); }
+
+/* 레벨업 플래시 */
+.levelup-flash {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--yellow);
+  background: rgba(245,200,66,0.15);
+  border: 1px solid rgba(245,200,66,0.4);
+  padding: 4px 12px;
+  border-radius: 99px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s;
+  white-space: nowrap;
+  z-index: 10;
+}
+.levelup-flash.show { opacity: 1; }
+
+/* 미션 탭 */
+.mission-list { padding: 12px 16px; }
+.mission-item {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 12px 14px;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.mission-info { flex: 1; }
+.mission-name { font-size: 14px; font-weight: 700; }
+.mission-prog { font-size: 11px; color: var(--text-2); margin-top: 2px; }
+.mission-prog-bar {
+  height: 4px;
+  background: rgba(255,255,255,0.08);
+  border-radius: 99px;
+  overflow: hidden;
+  margin-top: 4px;
+}
+.mission-prog-fill {
+  height: 100%;
+  background: var(--teal);
+  border-radius: 99px;
+  transition: width 0.3s;
+}
+.mission-claim-btn {
+  background: var(--yellow);
+  color: #1a1200;
+  border: none;
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.mission-claim-btn:disabled {
+  background: rgba(255,255,255,0.08);
+  color: var(--text-3);
+  cursor: not-allowed;
+}
+
 </style>
 </head>
 <body>
@@ -571,15 +720,41 @@ body::before {
      화면 2: 게임
      ============================================================ -->
 <div id="page-game" class="page">
+  <!-- ── 게임 헤더: 닉네임 + 포인트 ── -->
   <div class="game-header">
     <div class="game-header-name" id="g-nickname">HatchUp</div>
     <div class="game-header-points">⭐ <span id="g-points">0</span>P</div>
   </div>
 
+  <!-- ── 성장 상태 바 (최상단 고정) ── -->
+  <div style="padding:6px 20px 0;width:100%">
+    <!-- 레벨 + 희귀도 + 캐릭터명 한 줄 -->
+    <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">
+      <span style="font-size:15px;font-weight:700;color:var(--teal);font-family:'DotGothic16',monospace">
+        Lv.<span id="g-level">1</span>
+      </span>
+      <span id="g-rarity-badge" class="rarity-badge rarity-common">일반</span>
+      <span id="g-stage" style="font-size:12px;color:var(--yellow);font-weight:700"></span>
+      <span style="font-size:11px;color:var(--text-3)">·</span>
+      <span id="g-name" style="font-size:12px;color:var(--text-2)">?</span>
+    </div>
+    <!-- EXP 바 -->
+    <div style="display:flex;align-items:center;gap:8px">
+      <div style="flex:1;height:6px;background:rgba(255,255,255,0.08);border-radius:99px;overflow:hidden">
+        <div id="exp-bar-fill" style="height:100%;background:linear-gradient(90deg,var(--teal),var(--blue));border-radius:99px;width:0%;transition:width 0.4s ease"></div>
+      </div>
+      <span style="font-size:10px;color:var(--text-3);white-space:nowrap">
+        <span id="g-exp">0</span>/<span id="g-exp-next">20</span>
+      </span>
+    </div>
+  </div>
+
+  <!-- ── 디바이스 영역 ── -->
   <div class="device-wrap">
     <div class="device-body">
       <div class="screen-frame">
         <div class="screen" id="g-screen">
+          <!-- 상태 바 (배고픔/행복/건강) -->
           <div class="stats-bar">
             <div class="stat-col">
               <div class="stat-lbl">배고픔</div>
@@ -594,11 +769,15 @@ body::before {
               <div class="stat-bg"><div class="stat-fill" id="sf-health" style="width:100%"></div></div>
             </div>
           </div>
+          <!-- 캐릭터 캔버스 -->
           <canvas id="game-canvas" width="60" height="60"></canvas>
           <div id="zz-el">💤</div>
           <div id="poop-el"></div>
           <div id="game-msg"></div>
           <div class="evo-flash" id="evo-flash"></div>
+          <!-- 레벨업 플래시 -->
+          <div id="levelup-flash" class="levelup-flash">⬆️ LEVEL UP!</div>
+          <!-- 시작 오버레이 -->
           <div class="screen-overlay" id="g-overlay" onclick="startGame()">
             <div style="font-size:28px">🥚</div>
             <div style="font-size:11px">알에서 태어났어요!</div>
@@ -606,14 +785,21 @@ body::before {
           </div>
         </div>
       </div>
+      <!-- 하드웨어 버튼 (쿨다운 분리) -->
       <div class="hw-btns">
-        <button class="hw-btn r" onclick="act('feed')" title="밥주기">🍖</button>
-        <button class="hw-btn b" onclick="act('play')" title="놀기">🎮</button>
-        <button class="hw-btn g" onclick="act('clean')" title="청소">🪣</button>
+        <button class="hw-btn r" id="btn-feed"  onclick="act('feed')"  title="밥주기">
+          🍖<span class="cd-timer" id="cd-feed"></span>
+        </button>
+        <button class="hw-btn b" id="btn-play"  onclick="act('play')"  title="놀기">
+          🎮<span class="cd-timer" id="cd-play"></span>
+        </button>
+        <button class="hw-btn g" id="btn-clean" onclick="act('clean')" title="청소">
+          🪣<span class="cd-timer" id="cd-clean"></span>
+        </button>
       </div>
     </div>
 
-    <!-- 날짜 바 -->
+    <!-- 성장 기간 바 -->
     <div class="day-bar-wrap">
       <div class="day-bar-label">
         <span>성장 기간</span>
@@ -623,29 +809,30 @@ body::before {
     </div>
   </div>
 
-  <!-- 액션 버튼 -->
+  <!-- ── 액션 버튼 ── -->
   <div class="action-grid">
     <button class="action-btn" id="btn-sleep" onclick="act('sleep')">😴 재우기</button>
-    <button class="action-btn" id="btn-med" onclick="act('medicine')">💊 약 주기</button>
+    <button class="action-btn" id="btn-med"   onclick="act('medicine')">💊 약 주기</button>
     <button class="action-btn" id="btn-light" onclick="act('light')">💡 불끄기</button>
-    <button class="action-btn" onclick="act('status')">📊 상태보기</button>
+    <button class="action-btn"                onclick="act('status')">📊 상태보기</button>
   </div>
 
-  <!-- 인벤토리 요약 -->
+  <!-- ── 인벤토리 요약 ── -->
   <div class="info-row" id="inv-row" style="padding:0 20px;flex-wrap:wrap;gap:8px;">
     <span>🍖 <span class="info-val" id="inv-food">0</span></span>
     <span>💊 <span class="info-val" id="inv-med">0</span></span>
     <span>🪣 <span class="info-val" id="inv-clean">0</span></span>
     <span>🎾 <span class="info-val" id="inv-toy">0</span></span>
+    <span>😴 <span class="info-val" id="inv-sleep">0</span></span>
   </div>
 
+  <!-- ── 나이 / 성장 정보 ── -->
   <div class="info-row" style="padding:0 20px;margin-top:4px;">
-    나이: <span class="info-val" id="g-age">0</span>살 &nbsp;
-    <span id="g-stage" style="color:var(--yellow)">알</span> &nbsp;
-    이름: <span class="info-val" id="g-name">?</span>
+    나이: <span class="info-val" id="g-age">0</span>일 &nbsp;·&nbsp;
+    판매: <span id="g-sell-status" style="color:var(--text-3)">성인 후 가능</span>
   </div>
 
-  <!-- 성인 판매 버튼 -->
+  <!-- ── 판매 버튼 (성인 도달 시) ── -->
   <div style="padding:12px 20px;width:100%;">
     <button class="btn btn-primary btn-full" id="btn-sell" style="display:none" onclick="openSell()">
       💰 캐릭터 판매하기
@@ -787,9 +974,32 @@ body::before {
   <button class="nav-btn" id="nav-market" onclick="goPage('market')">
     <span class="nav-icon">🏪</span><span>마켓</span>
   </button>
+  <button class="nav-btn" id="nav-missions" onclick="goPage('missions')">
+    <span class="nav-icon">📋</span><span>미션</span>
+  </button>
   <button class="nav-btn" id="nav-mypage" onclick="goPage('mypage')">
     <span class="nav-icon">👤</span><span>마이</span>
   </button>
+</div>
+
+
+<!-- ============================================================
+     화면: 미션
+     ============================================================ -->
+<div id="page-missions" class="page">
+  <div class="page-title">📋 일일 미션</div>
+  <div style="padding:8px 16px;font-size:12px;color:var(--text-2);text-align:center">
+    매일 자정에 초기화됩니다
+  </div>
+  <div style="padding:8px 16px;display:flex;justify-content:space-between;align-items:center">
+    <span style="font-size:13px;color:var(--text-2)">오늘 획득</span>
+    <span style="font-size:16px;font-weight:700;color:var(--yellow)">
+      <span id="mission-earned">0</span> / <span id="mission-total">0</span> P
+    </span>
+  </div>
+  <div class="mission-list" id="mission-list">
+    <div style="text-align:center;padding:32px;color:var(--text-2)">로딩 중...</div>
+  </div>
 </div>
 
 <!-- 판매 모달 -->
@@ -897,9 +1107,10 @@ function goPage(name) {
   if (navBtn) navBtn.classList.add('active');
 
   // 페이지별 데이터 로드
-  if (name === 'shop')   loadShop();
-  if (name === 'market') loadMarket();
-  if (name === 'mypage') loadMyPage();
+  if (name === 'shop')     loadShop();
+  if (name === 'market')   loadMarket();
+  if (name === 'mypage')   loadMyPage();
+  if (name === 'missions') loadMissions();
 }
 
 // ============================================================
@@ -976,18 +1187,49 @@ function demoLogin() {
   APP.isDemo = true;
   APP.user   = { nickname: '체험유저', email: 'demo@demo.com', points: 500, referralCode: 'DEMO1234' };
   APP.inv    = { food: 5, medicine: 3, clean: 3, toy: 2, sleep: 2 };
+  // 체험 모드 초기 캐릭터 상태 (레벨/EXP/희귀도 포함)
+  APP.char   = {
+    stage: 'egg', level: 1, exp: 0, exp_to_next: 20,
+    rarity: 'common', hunger: 100, happy: 100, health: 100,
+    age_days: 0, poop_count: 0, is_sick: 0, is_sleeping: 0,
+    name: '체험 해치루', canSell: false,
+  };
   enterApp();
 }
 
 // ============================================================
 // 앱 진입 (로그인 성공 후)
 // ============================================================
+// 쿨다운 카운트다운 타이머 (1초마다 실행)
+// 서버 재요청 없이 로컬에서 카운트다운만 표시
+let _cdInterval = null;
+function startCooldownTimer() {
+  if (_cdInterval) clearInterval(_cdInterval);
+  _cdInterval = setInterval(() => {
+    if (!APP.cooldowns) return;
+    let anyActive = false;
+    ['feed', 'play', 'clean'].forEach(action => {
+      if (APP.cooldowns[action] > 0) {
+        APP.cooldowns[action] = Math.max(0, APP.cooldowns[action] - 1);
+        anyActive = true;
+      }
+    });
+    if (anyActive) updateCooldownUI(APP.cooldowns);
+  }, 1000);
+}
+
 function enterApp() {
   document.getElementById('page-auth').classList.remove('active');
   document.getElementById('nav-bar').style.display = 'flex';
   updateGameHeader();
   goPage('game');
-  if (!APP.isDemo) loadGameStatus();
+  if (!APP.isDemo) {
+    loadGameStatus();
+  } else {
+    // 체험 모드: APP.char 초기값으로 즉시 UI 표시
+    if (APP.char) updateGameUI();
+  }
+  startCooldownTimer(); // 쿨다운 카운트다운 타이머 시작
 }
 
 // ============================================================
@@ -1008,43 +1250,197 @@ async function loadGameStatus() {
   if (!data || !data.success) return;
 
   if (data.character) {
-    APP.char = data.character;
-    APP.inv  = data.inventory || {};
-    APP.user.points = data.points;
+    APP.char     = data.character;
+    APP.inv      = data.invMap || data.inventory || {};
+    APP.user.points = data.points || APP.user.points;
+
+    // 쿨다운 정보 저장 (버튼 상태 업데이트용)
+    if (data.cooldowns) APP.cooldowns = data.cooldowns;
+
     updateGameUI();
+
+    // 오프라인 보상 팝업 표시 (있을 때만)
+    if (data.offline_reward && data.offline_reward.hours >= 0.5) {
+      showOfflineReward(data.offline_reward);
+    }
   }
-  if (data.inventory) {
-    document.getElementById('inv-food').textContent  = data.inventory.food  || 0;
-    document.getElementById('inv-med').textContent   = data.inventory.medicine || 0;
-    document.getElementById('inv-clean').textContent = data.inventory.clean || 0;
-    document.getElementById('inv-toy').textContent   = data.inventory.toy   || 0;
-  }
+
+  // 인벤토리 UI 업데이트
+  const inv = data.invMap || data.inventory || {};
+  document.getElementById('inv-food').textContent  = inv.food     || 0;
+  document.getElementById('inv-med').textContent   = inv.medicine || 0;
+  document.getElementById('inv-clean').textContent = inv.clean    || 0;
+  document.getElementById('inv-toy').textContent   = inv.toy      || 0;
+  const sleepEl = document.getElementById('inv-sleep');
+  if (sleepEl) sleepEl.textContent = inv.sleep || 0;
+
   updateGameHeader();
 }
 
 function updateGameUI() {
   if (!APP.char) return;
   const c = APP.char;
-  updateBars(c.hunger, c.happy, c.health);
-  document.getElementById('g-age').textContent   = c.age || 0;
-  document.getElementById('g-stage').textContent = stageLabel(c.stage);
-  document.getElementById('g-name').textContent  = charName(c.stage);
-  document.getElementById('poop-el').textContent = '💩'.repeat(Math.min(c.poop || 0, 4));
 
+  // 기본 상태 바
+  updateBars(c.hunger, c.happy, c.health);
+
+  // 나이 / 단계명 (레벨 기반) / 이름
+  const lvl   = c.level || 1;
+  const rar   = c.rarity || 'common';
+  document.getElementById('g-age').textContent   = c.age_days || c.age || 0;
+  document.getElementById('g-stage').textContent = stageLabel(c.stage, lvl, rar);
+  document.getElementById('g-name').textContent  = c.name || charName(c.stage, lvl, rar);
+  document.getElementById('poop-el').textContent = '💩'.repeat(Math.min(c.poop_count || c.poop || 0, 4));
+
+  // 판매 상태 표시
+  const sellStatus = document.getElementById('g-sell-status');
+  if (sellStatus) {
+    if (c.is_for_sale) sellStatus.textContent = '판매 등록 중';
+    else if (c.canSell) sellStatus.textContent = '판매 가능!';
+    else sellStatus.textContent = stageLabel(c.stage, lvl) === '전설닭' ? '최고 단계!' : '성인 후 가능';
+    sellStatus.style.color = c.canSell ? 'var(--yellow)' : 'var(--text-3)';
+  }
+
+  // 성장 기간 바
   const days = c.daysAlive || 0;
   document.getElementById('day-text').textContent = days + ' / 30일';
   document.getElementById('day-fill').style.width = Math.min(100, (days / 30) * 100) + '%';
 
+  // 레벨 / EXP 바
+  const level    = c.level    || 1;
+  const exp      = c.exp      || 0;
+  const expNext  = c.exp_to_next || (level * 20);
+  document.getElementById('g-level').textContent    = level;
+  document.getElementById('g-exp').textContent      = exp;
+  document.getElementById('g-exp-next').textContent = expNext;
+  const expPct = expNext > 0 ? Math.min(100, (exp / expNext) * 100) : 0;
+  document.getElementById('exp-bar-fill').style.width = expPct + '%';
+
+  // 희귀도 배지
+  const rarityEl  = document.getElementById('g-rarity-badge');
+  const rarityMap = {
+    common:   { label:'일반',  cls:'rarity-common'   },
+    advanced: { label:'고급',  cls:'rarity-advanced' },
+    rare:     { label:'희귀',  cls:'rarity-rare'     },
+    heroic:   { label:'영웅',  cls:'rarity-heroic'   },
+    legendary:{ label:'전설',  cls:'rarity-legendary'},
+  };
+  const ri = rarityMap[c.rarity] || rarityMap.common;
+  rarityEl.textContent  = ri.label;
+  rarityEl.className    = 'rarity-badge ' + ri.cls;
+
+  // 판매 버튼
   const sellBtn = document.getElementById('btn-sell');
   if (c.canSell) sellBtn.style.display = 'block';
   else sellBtn.style.display = 'none';
+
+  // 쿨다운 버튼 상태 업데이트
+  if (APP.cooldowns) updateCooldownUI(APP.cooldowns);
 }
 
-function stageLabel(s) {
-  return { egg:'알', baby:'아기', child:'어린이', teen:'청소년', adult:'어른', dead:'천사' }[s] || '알';
+// 쿨다운 UI 업데이트 (서버 응답의 cooldowns 객체 사용)
+function updateCooldownUI(cooldowns) {
+  const actions = ['feed', 'play', 'clean'];
+  actions.forEach(action => {
+    const btn    = document.getElementById('btn-' + action);
+    const timer  = document.getElementById('cd-' + action);
+    if (!btn || !timer) return;
+
+    const remaining = cooldowns[action] || 0;
+    if (remaining > 0) {
+      btn.classList.add('cooldown');
+      btn.disabled    = true;
+      timer.textContent = remaining + 's';
+    } else {
+      btn.classList.remove('cooldown');
+      btn.disabled    = false;
+      timer.textContent = '';
+    }
+  });
 }
-function charName(s) {
-  return { egg:'?', baby:'해치루', child:'해치비', teen:'해치나', adult:'해치메', dead:'천사' }[s] || '?';
+
+// 레벨업 플래시 표시
+function showLevelUp(newLevel) {
+  const el = document.getElementById('levelup-flash');
+  if (!el) return;
+  el.textContent = '⬆️ Lv.' + newLevel + ' LEVEL UP!';
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 2000);
+}
+
+// 오프라인 보상 팝업 표시
+function showOfflineReward(reward) {
+  if (!reward || (!reward.points && !reward.exp)) return;
+  document.getElementById('offline-hours').textContent =
+    reward.hours + '시간 동안 자리를 비웠어요!' + (reward.isPremium ? ' (프리미엄 2배!)' : '');
+  document.getElementById('offline-pts').textContent = '+' + reward.points + 'P';
+  document.getElementById('offline-exp').textContent = '+' + reward.exp + ' EXP';
+  document.getElementById('offline-popup').classList.add('show');
+  document.getElementById('offline-overlay').style.display = 'block';
+}
+function closeOfflinePopup() {
+  document.getElementById('offline-popup').classList.remove('show');
+  document.getElementById('offline-overlay').style.display = 'none';
+}
+
+// ============================================================
+// 진화 단계명 — 레벨 기반 표시 (내부 DB값은 stage 유지)
+// Lv1 알 / Lv5 병아리 / Lv10 닭 / Lv20 큰닭 / Lv30 황금닭 / Lv50 전설닭
+// 희귀도별 이름도 반영
+// ============================================================
+function stageLabel(stage, level, rarity) {
+  level = level || 1;
+
+  // 사망한 캐릭터
+  if (stage === 'dead') return '천사 👼';
+
+  // 레벨 기반 진화 단계 이름
+  if (stage === 'egg' || level < 5)  return '알';
+  if (level < 10)  return '병아리';
+  if (level < 20)  return '닭';
+  if (level < 30)  return '큰닭';
+  if (level < 50)  return '황금닭';
+  return '전설닭';
+}
+
+// 캐릭터 표시명 — 희귀도 + 단계 조합
+function charName(stage, level, rarity) {
+  level  = level  || 1;
+  rarity = rarity || 'common';
+
+  if (stage === 'dead') return '천사';
+
+  // 희귀도 접두사
+  const rarityPrefix = {
+    common:    '',
+    advanced:  '은빛 ',
+    rare:      '황금 ',
+    heroic:    '영웅의 ',
+    legendary: '전설의 ',
+  }[rarity] || '';
+
+  // 레벨 기반 기본 이름
+  let baseName;
+  if (stage === 'egg' || level < 5)  baseName = '해치루';
+  else if (level < 10) baseName = '해치비';
+  else if (level < 20) baseName = '해치나';
+  else if (level < 30) baseName = '해치메';
+  else if (level < 50) baseName = '황금해치';
+  else                 baseName = '전설해치';
+
+  return rarityPrefix + baseName;
+}
+
+// 진화 단계 이모지 (캔버스 오버레이용)
+function stageEmoji(stage, level) {
+  level = level || 1;
+  if (stage === 'dead')              return '👼';
+  if (stage === 'egg' || level < 5)  return '🥚';
+  if (level < 10)  return '🐣';
+  if (level < 20)  return '🐥';
+  if (level < 30)  return '🐤';
+  if (level < 50)  return '✨🐤';
+  return '🌟';
 }
 
 // ============================================================
@@ -1112,6 +1508,7 @@ function drawPet() {
   ctx.clearRect(0, 0, 60, 60);
   if (G.dead)     { DRAW.dead(animF); return; }
   if (G.sleeping) { DRAW.sleeping(animF); return; }
+  // 레벨 기반 이모지 오버레이 (캔버스 위에 표시)
   const fn = DRAW[G.stage] || DRAW.baby;
   fn(animF);
   if (G.sick) { ctx.fillStyle='rgba(80,180,80,0.2)'; ctx.fillRect(0,0,60,60); }
@@ -1200,9 +1597,16 @@ function clearGameMsg() { document.getElementById('game-msg').textContent = ''; 
 function triggerEvo(nextStage) {
   if (!nextStage || G.stage === 'adult') return;
   G.stage = nextStage;
-  const flash = document.getElementById('evo-flash');
-  [0,200,400].forEach(d => { setTimeout(()=>flash.classList.add('on'),d); setTimeout(()=>flash.classList.remove('on'),d+100); });
-  toast('✨ 진화! ' + stageLabel(nextStage) + '가 됐어요!');
+  const flash   = document.getElementById('evo-flash');
+  const lvlName = stageLabel(nextStage, G.level || 1);
+  [0,200,400].forEach(d => {
+    setTimeout(() => flash.classList.add('on'),    d);
+    setTimeout(() => flash.classList.remove('on'), d + 100);
+  });
+  toast('✨ 진화! ' + lvlName + '가 됐어요!');
+  // 게임 UI 단계명 즉시 갱신
+  const stageEl = document.getElementById('g-stage');
+  if (stageEl) stageEl.textContent = lvlName;
 }
 
 // ============================================================
@@ -1222,9 +1626,28 @@ async function act(action) {
     const data = await api('POST', pathMap[action]);
     if (data && data.success) {
       toast(data.message);
+
+      // 레벨업 발생 시 플래시 효과
+      if (data.level_up && data.level) {
+        showLevelUp(data.level);
+      }
+
+      // 쿨다운 응답 즉시 반영 (다음 loadGameStatus 전에 버튼 비활성화)
+      if (data.cooldown) {
+        if (!APP.cooldowns) APP.cooldowns = {};
+        APP.cooldowns[action] = data.cooldown;
+        updateCooldownUI(APP.cooldowns);
+      }
+
       await loadGameStatus();
     } else if (data) {
-      toast('❌ ' + data.message);
+      // 쿨다운 오류(429) 시 서버 남은 시간 표시
+      if (data.cooldown) {
+        if (!APP.cooldowns) APP.cooldowns = {};
+        APP.cooldowns[action] = data.cooldown;
+        updateCooldownUI(APP.cooldowns);
+      }
+      toast('❌ ' + (data.message || '오류가 발생했습니다.'));
     }
     return;
   }
@@ -1395,38 +1818,75 @@ async function doCharge(pkg) {
 async function loadMarket() {
   const grid = document.getElementById('market-grid');
   if (APP.isDemo) {
-    // 체험용 더미 데이터
+    // 체험 모드: 더미 데이터
     const dummies = [
-      { name:'해치나의 HatchUp', stage:'adult', version:1, sale_price:450, owner_nickname:'별빛유저', health:82 },
-      { name:'해치비 최고야', stage:'adult', version:2, sale_price:1200, owner_nickname:'달빛요정', health:91 },
-      { name:'해치메 판매중', stage:'adult', version:1, sale_price:350, owner_nickname:'구름이', health:75 },
+      { character_id:0, name:'해치나의 HatchUp', stage:'adult', version:1,
+        market_price:450, seller_nickname:'별빛유저', health:82, level:12, rarity:'rare', listing_id:0 },
+      { character_id:0, name:'해치비 최고야',   stage:'adult', version:2,
+        market_price:1200, seller_nickname:'달빛요정', health:91, level:28, rarity:'advanced', listing_id:0 },
     ];
-    grid.innerHTML = dummies.map(c => marketCard(c)).join('') || '<div style="text-align:center;color:var(--text-2);padding:40px 0">판매 중인 캐릭터가 없습니다.</div>';
+    grid.innerHTML = dummies.map(c => marketCard(c)).join('');
     return;
   }
-  const data = await api('GET', '/game/market');
-  if (!data || !data.success) { grid.innerHTML = '<div style="text-align:center;color:var(--text-2);padding:40px">마켓을 불러오지 못했습니다.</div>'; return; }
-  const items = data.market || [];
+
+  // 실제 /api/market API 연동
+  const data = await api('GET', '/market');
+  if (!data || !data.success) {
+    grid.innerHTML = '<div style="text-align:center;color:var(--text-2);padding:40px">마켓을 불러오지 못했습니다.</div>';
+    return;
+  }
+  const items = data.listings || data.market || [];
   grid.innerHTML = items.length
     ? items.map(c => marketCard(c)).join('')
-    : '<div style="text-align:center;color:var(--text-2);padding:40px 0;font-size:14px">판매 중인 캐릭터가 없습니다.</div>';
+    : '<div style="text-align:center;color:var(--text-2);padding:40px;font-size:14px">판매 중인 캐릭터가 없습니다.</div>';
 }
 
 function marketCard(c) {
-  const icons = { egg:'🥚', baby:'🐣', child:'🐥', teen:'🐤', adult:'🐾' };
-  const vClass = ['','v1','v2','v3','v3','v3'][c.version||1];
+  const icons   = { egg:'🥚', baby:'🐣', child:'🐥', teen:'🐤', adult:'🐾' };
+  const vClass  = ['','v1','v2','v3','v3','v3'][c.version||1];
+  const rarityMap = {
+    common:'일반', advanced:'고급', rare:'희귀', heroic:'영웅', legendary:'전설'
+  };
+  const rarityLabel = c.rarityLabel || rarityMap[c.rarity] || '일반';
+  const price = c.market_price || c.sale_price || 0;
+  const listingId = c.listing_id || 0;
   return `
   <div class="market-card">
     <div class="market-char-preview">${icons[c.stage]||'🐾'}</div>
     <div class="market-info">
-      <div class="market-name">${c.name}<span class="version-badge ${vClass}">v${c.version||1}</span></div>
-      <div class="market-meta">판매자: ${c.owner_nickname} · 건강 ${c.health}%</div>
+      <div class="market-name">
+        ${c.name}
+        <span class="version-badge ${vClass}">v${c.version||1}</span>
+        <span class="rarity-badge rarity-${c.rarity||'common'}" style="font-size:9px">${rarityLabel}</span>
+      </div>
+      <div class="market-meta">
+        판매자: ${c.seller_nickname||c.owner_nickname||'?'}
+        · Lv.${c.level||1}
+        · 건강 ${c.health||0}%
+      </div>
     </div>
     <div style="text-align:right">
-      <div class="market-price">${(c.sale_price||0).toLocaleString()}P</div>
-      <button class="btn btn-sm btn-primary" style="margin-top:6px" onclick="buyChar(${c.id||0},'${c.name}',${c.sale_price||0})">구매</button>
+      <div class="market-price">${price.toLocaleString()}P</div>
+      <button class="btn btn-sm btn-primary" style="margin-top:6px"
+        onclick="buyCharListing(${listingId},'${c.name}',${price})">구매</button>
     </div>
   </div>`;
+}
+
+// 새 마켓 API 기준 구매 함수
+async function buyCharListing(listingId, name, price) {
+  if (APP.isDemo) { toast('체험 모드에서는 구매할 수 없어요.'); return; }
+  if (!listingId) { toast('구매 정보가 없습니다.'); return; }
+  if (!confirm(\`\${name}을(를) \${price.toLocaleString()}P에 구매하시겠습니까?\`)) return;
+  const data = await api('POST', '/market/buy', { listingId });
+  if (data && data.success) {
+    toast(\`🎉 \${name} 구매 완료! \${price.toLocaleString()}P 차감\`);
+    APP.user.points -= price;
+    updateGameHeader();
+    loadMarket();
+  } else if (data) {
+    toast('❌ ' + data.message);
+  }
 }
 
 async function buyChar(id, name, price) {
@@ -1508,6 +1968,78 @@ function showHistory() {
 function showMyChars() { toast('내 캐릭터 기능 준비 중...'); }
 function showNotice()  { toast('공지사항 기능 준비 중...'); }
 
+
+// ============================================================
+// 미션 로드 및 렌더링
+// /api/missions 실제 존재하므로 연동
+// ============================================================
+async function loadMissions() {
+  if (APP.isDemo) {
+    document.getElementById('mission-list').innerHTML =
+      '<div style="text-align:center;padding:32px;color:var(--text-2)">체험 모드에서는 미션을 사용할 수 없어요.</div>';
+    return;
+  }
+
+  const data = await api('GET', '/missions');
+  if (!data || !data.success) {
+    document.getElementById('mission-list').innerHTML =
+      '<div style="text-align:center;padding:32px;color:var(--text-2)">미션을 불러오지 못했어요.</div>';
+    return;
+  }
+
+  // 총 보상 표시
+  document.getElementById('mission-total').textContent  = data.totalReward  || 0;
+  document.getElementById('mission-earned').textContent = data.earnedReward || 0;
+
+  // 미션 목록 렌더링
+  const list = data.missions || [];
+  if (list.length === 0) {
+    document.getElementById('mission-list').innerHTML =
+      '<div style="text-align:center;padding:32px;color:var(--text-2)">오늘의 미션이 없어요.</div>';
+    return;
+  }
+
+  document.getElementById('mission-list').innerHTML = list.map(m => {
+    const pct     = m.target > 0 ? Math.min(100, (m.progress / m.target) * 100) : 0;
+    const btnText = m.claimed ? '수령 완료' : (m.completed ? '받기!' : `${m.progress}/${m.target}`);
+    const btnDis  = m.claimed || !m.completed;
+    return `
+      <div class="mission-item">
+        <div class="mission-info">
+          <div class="mission-name">${m.name}</div>
+          <div class="mission-prog">${m.description || ''}</div>
+          <div class="mission-prog-bar">
+            <div class="mission-prog-fill" style="width:${pct}%"></div>
+          </div>
+        </div>
+        <div style="text-align:right;min-width:70px">
+          <div style="font-size:13px;font-weight:700;color:var(--yellow);margin-bottom:4px">
+            +${m.reward_pts}P
+          </div>
+          <button class="mission-claim-btn"
+            onclick="claimMission('${m.key}')"
+            ${btnDis ? 'disabled' : ''}>
+            ${btnText}
+          </button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+// 미션 보상 수령
+async function claimMission(missionKey) {
+  const data = await api('POST', '/missions/claim', { missionKey });
+  if (data && data.success) {
+    toast('🎉 ' + data.message);
+    APP.user.points = data.newBalance;
+    updateGameHeader();
+    loadMissions(); // 목록 갱신
+  } else if (data) {
+    toast('❌ ' + data.message);
+  }
+}
+
 function doLogout() {
   localStorage.removeItem('tama_token');
   localStorage.removeItem('tama_user');
@@ -1565,5 +2097,25 @@ window.addEventListener('load', () => {
   drawPet(); // 초기 캔버스 그리기
 });
 </script>
+
+<!-- 오프라인 보상 팝업 -->
+<div class="offline-popup" id="offline-popup">
+  <div class="offline-popup-icon">🌙</div>
+  <div class="offline-popup-title">오프라인 보상!</div>
+  <div class="offline-popup-sub" id="offline-hours">자리를 비운 동안 캐릭터가 열심히 성장했어요!</div>
+  <div class="offline-popup-rewards">
+    <div class="offline-reward-item">
+      <div class="offline-reward-val" id="offline-pts">+0P</div>
+      <div class="offline-reward-lbl">포인트</div>
+    </div>
+    <div class="offline-reward-item">
+      <div class="offline-reward-val" id="offline-exp" style="color:var(--teal)">+0</div>
+      <div class="offline-reward-lbl">EXP</div>
+    </div>
+  </div>
+  <button class="btn btn-primary" style="width:100%" onclick="closeOfflinePopup()">받기! 🎁</button>
+</div>
+<div id="offline-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9998" onclick="closeOfflinePopup()"></div>
+
 </body>
 </html>
